@@ -6,12 +6,11 @@ import { getDocBySlug, docExists } from '@/lib/mdx/get-doc-by-slug'
 import { getAllDocs } from '@/lib/mdx/get-all-docs'
 import { parseTableOfContents } from '@/lib/mdx/parse-toc'
 import { buildSectionNavTree } from '@/lib/navigation/build-nav-tree'
-import { mdxOptions } from '@/lib/mdx/mdx-plugins'
 
 interface DocPageProps {
-  params: {
+  params: Promise<{
     slug: string[]
-  }
+  }>
 }
 
 /**
@@ -29,7 +28,8 @@ export async function generateStaticParams() {
  * Generate metadata for each page
  */
 export async function generateMetadata({ params }: DocPageProps) {
-  const doc = await getDocBySlug(params.slug)
+  const { slug } = await params
+  const doc = getDocBySlug(slug)
 
   if (!doc) {
     return {
@@ -47,27 +47,25 @@ export async function generateMetadata({ params }: DocPageProps) {
  * Documentation page component
  */
 export default async function DocPage({ params }: DocPageProps) {
+  const { slug } = await params
+
   // Check if doc exists
-  if (!docExists(params.slug)) {
+  if (!docExists(slug)) {
     notFound()
   }
 
-  const doc = await getDocBySlug(params.slug)
+  const doc = getDocBySlug(slug)
 
   if (!doc) {
     notFound()
   }
 
   // Get the section (first segment of slug) for sidebar
-  const section = params.slug[0]
+  const section = slug[0]
   const sidebarNav = buildSectionNavTree(section)
 
   // Parse table of contents from the raw content
-  // Note: We need to get the raw content for TOC parsing
-  const { getAllDocs: getAllDocsSync } = await import('@/lib/mdx/get-all-docs')
-  const allDocs = getAllDocsSync()
-  const currentDoc = allDocs.find(d => d.slug === params.slug.join('/'))
-  const toc = currentDoc ? parseTableOfContents(currentDoc.content) : { items: [] }
+  const toc = parseTableOfContents(doc.content)
 
   return (
     <DocLayout sidebar={sidebarNav} toc={toc}>
@@ -78,11 +76,7 @@ export default async function DocPage({ params }: DocPageProps) {
             {doc.frontMatter.description}
           </p>
         )}
-        <MDXRemote
-          source={doc.mdxSource.compiledSource}
-          components={components}
-          options={mdxOptions}
-        />
+        <MDXRemote source={doc.content} components={components} />
       </article>
     </DocLayout>
   )

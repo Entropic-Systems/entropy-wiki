@@ -5,12 +5,12 @@ import type { SearchIndex, SearchResult, SearchOptions } from './types'
  * Client-side search using FlexSearch
  */
 export class DocumentSearch {
-  private index: FlexSearch.Document<SearchIndex>
+  private index: any
   private data: SearchIndex[]
 
   constructor(searchData: SearchIndex[]) {
     this.data = searchData
-    this.index = new FlexSearch.Document<SearchIndex>({
+    this.index = new FlexSearch.Document({
       document: {
         id: 'id',
         index: ['title', 'content'],

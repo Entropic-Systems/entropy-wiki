@@ -10,7 +10,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ items }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname = usePathname() || '/'
 
   return (
     <aside className="fixed top-14 z-30 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block md:w-64 lg:w-72">

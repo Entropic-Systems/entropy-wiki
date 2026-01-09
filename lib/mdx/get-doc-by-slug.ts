@@ -1,9 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
-import { serialize } from 'next-mdx-remote/serialize'
-import type { SerializedMDX } from './types'
-import { mdxOptions } from './mdx-plugins'
+import type { MDXDocument } from './types'
 
 const DOCS_DIR = path.join(process.cwd(), 'docs')
 
@@ -35,9 +33,38 @@ function slugToFilePath(slug: string[]): string | null {
 }
 
 /**
- * Get a document by its slug and serialize it for rendering
+ * Extract title from markdown content (first h1 or h2 heading)
  */
-export async function getDocBySlug(slug: string[]): Promise<SerializedMDX | null> {
+function extractTitleFromContent(content: string): string | null {
+  // Try to find first h1 heading
+  const h1Match = content.match(/^#\s+(.+)$/m)
+  if (h1Match) {
+    return h1Match[1].trim()
+  }
+
+  // Try to find first h2 heading
+  const h2Match = content.match(/^##\s+(.+)$/m)
+  if (h2Match) {
+    return h2Match[1].trim()
+  }
+
+  return null
+}
+
+/**
+ * Slugify a string to create a readable slug
+ */
+function slugToTitle(slug: string): string {
+  return slug
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+/**
+ * Get a document by its slug (returns raw content for RSC rendering)
+ */
+export function getDocBySlug(slug: string[]): MDXDocument | null {
   try {
     const filePath = slugToFilePath(slug)
 
@@ -48,13 +75,13 @@ export async function getDocBySlug(slug: string[]): Promise<SerializedMDX | null
     const fileContent = fs.readFileSync(filePath, 'utf-8')
     const { data, content } = matter(fileContent)
 
-    const mdxSource = await serialize(content, {
-      mdxOptions,
-      parseFrontmatter: false,
-    })
+    // Determine title: frontmatter > extracted from content > slugified
+    const extractedTitle = extractTitleFromContent(content)
+    const fallbackTitle = slugToTitle(slug[slug.length - 1])
+    const title = data.title || extractedTitle || fallbackTitle
 
     const frontMatter = {
-      title: data.title || slug[slug.length - 1],
+      title,
       description: data.description,
       date: data.date,
       author: data.author,
@@ -63,10 +90,13 @@ export async function getDocBySlug(slug: string[]): Promise<SerializedMDX | null
       ...data,
     }
 
+    const relativePath = filePath.replace(DOCS_DIR + path.sep, '')
+
     return {
-      mdxSource,
       frontMatter,
+      content,
       slug: slug.join('/'),
+      filePath: relativePath,
     }
   } catch (error) {
     console.error(`Error getting doc for slug ${slug.join('/')}:`, error)

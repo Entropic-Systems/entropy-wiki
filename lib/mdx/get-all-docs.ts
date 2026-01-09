@@ -34,6 +34,25 @@ function getMarkdownFiles(dir: string, baseDir: string = dir): string[] {
 }
 
 /**
+ * Extract title from markdown content (first h1 or h2 heading)
+ */
+function extractTitleFromContent(content: string): string | null {
+  // Try to find first h1 heading
+  const h1Match = content.match(/^#\s+(.+)$/m)
+  if (h1Match) {
+    return h1Match[1].trim()
+  }
+
+  // Try to find first h2 heading
+  const h2Match = content.match(/^##\s+(.+)$/m)
+  if (h2Match) {
+    return h2Match[1].trim()
+  }
+
+  return null
+}
+
+/**
  * Parse a markdown file and extract frontmatter + content
  */
 function parseMarkdownFile(filePath: string, baseDir: string): MDXDocument | null {
@@ -50,8 +69,13 @@ function parseMarkdownFile(filePath: string, baseDir: string): MDXDocument | nul
       .replace(/^README$/i, '')
       .toLowerCase()
 
+    // Determine title: frontmatter > extracted from content > filename
+    const extractedTitle = extractTitleFromContent(content)
+    const fallbackTitle = path.basename(filePath, path.extname(filePath))
+    const title = data.title || extractedTitle || fallbackTitle
+
     const frontMatter: FrontMatter = {
-      title: data.title || path.basename(filePath, path.extname(filePath)),
+      title,
       description: data.description,
       date: data.date,
       author: data.author,

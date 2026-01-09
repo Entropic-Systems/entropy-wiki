@@ -16,9 +16,6 @@ export const rehypePrettyCodeOptions: Options = {
   onVisitHighlightedLine(node: any) {
     node.properties.className?.push('line--highlighted')
   },
-  onVisitHighlightedWord(node: any) {
-    node.properties.className = ['word--highlighted']
-  },
 }
 
 export const mdxOptions = {

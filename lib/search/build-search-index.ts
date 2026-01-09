@@ -38,7 +38,7 @@ export function buildSearchIndex(): SearchIndex[] {
  * Create FlexSearch document index
  */
 export function createFlexSearchIndex() {
-  const index = new FlexSearch.Document<SearchIndex>({
+  const index = new FlexSearch.Document({
     document: {
       id: 'id',
       index: ['title', 'content'],
