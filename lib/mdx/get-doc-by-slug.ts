@@ -3,13 +3,13 @@ import path from 'path'
 import matter from 'gray-matter'
 import type { MDXDocument } from './types'
 
-const DOCS_DIR = path.join(process.cwd(), 'docs')
+const DOCS_DIR = path.join(process.cwd(), 'wiki')
 
 /**
  * Convert slug to file path
  * Examples:
- *   "beads" -> docs/beads/README.md
- *   "beads/lifecycle" -> docs/beads/lifecycle.md
+ *   "beads" -> wiki/beads/README.md
+ *   "beads/lifecycle" -> wiki/beads/lifecycle.md
  */
 function slugToFilePath(slug: string[]): string | null {
   const possiblePaths = [

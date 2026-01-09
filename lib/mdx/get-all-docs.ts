@@ -3,7 +3,7 @@ import path from 'path'
 import matter from 'gray-matter'
 import type { FrontMatter, MDXDocument } from './types'
 
-const DOCS_DIR = path.join(process.cwd(), 'docs')
+const DOCS_DIR = path.join(process.cwd(), 'wiki')
 
 /**
  * Recursively get all markdown/MDX files from a directory
@@ -132,7 +132,7 @@ export function getAllTags(): string[] {
 }
 
 /**
- * Get all unique sections (top-level directories in docs/)
+ * Get all unique sections (top-level directories in wiki/)
  */
 export function getAllSections(): string[] {
   if (!fs.existsSync(DOCS_DIR)) {

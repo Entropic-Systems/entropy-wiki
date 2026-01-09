@@ -429,6 +429,12 @@ gt mayor detach
 gt mayor attach
 ```
 
+## Additional Resources
+
+**Related Article:** [Welcome to Gas Town](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04) - Medium article by Steve Yegge on "idea compilation" and the MEOW stack architecture.
+
+**Repository:** [github.com/steveyegge/gastown](https://github.com/steveyegge/gastown)
+
 ## License
 
 MIT License - see LICENSE file for details

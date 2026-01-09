@@ -10,6 +10,19 @@ The project is licensed under MIT and currently has 9.3k stars on GitHub.
 
 Beads addresses a key limitation in agent workflows: maintaining coherent task state across extended interactions. Rather than agents losing context in long conversations, Beads stores issues as JSONL files in a `.beads/` directory, enabling version control integration and multi-agent coordination.
 
+## Quick Start
+
+```bash
+# Install (macOS/Linux)
+curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
+
+# Initialize (Humans run this once)
+bd init
+
+# Tell your agent
+echo "Use 'bd' for task tracking" >> AGENTS.md
+```
+
 ## Installation Methods
 
 Three primary installation paths are available:
@@ -18,7 +31,7 @@ Three primary installation paths are available:
 - **Homebrew:** `brew install steveyegge/beads/bd`
 - **Go:** `go install github.com/steveyegge/beads/cmd/bd@latest`
 
-## Supported platforms
+## Supported Platforms
 - Linux (glibc 2.32+)
 - macOS
 - Windows
@@ -75,13 +88,14 @@ echo "Use 'bd' for task tracking" >> AGENTS.md
 ## Community & Documentation
 
 The project maintains extensive documentation:
-- Installation guide
-- Agent workflow instructions
-- Protected branches/sync mode
-- Troubleshooting guide
-- FAQ
+- [Installing](https://github.com/steveyegge/beads/blob/main/docs/INSTALLING.md)
+- [Agent Workflow](https://github.com/steveyegge/beads/blob/main/AGENT_INSTRUCTIONS.md)
+- [Sync Branch Mode / Protected Branches](https://github.com/steveyegge/beads/blob/main/docs/PROTECTED_BRANCHES.md)
+- [Troubleshooting](https://github.com/steveyegge/beads/blob/main/docs/TROUBLESHOOTING.md)
+- [FAQ](https://github.com/steveyegge/beads/blob/main/docs/FAQ.md)
+- [Ask DeepWiki](https://deepwiki.com/steveyegge/beads) - Q&A assistance
 
-Community tools are cataloged separately, including third-party UIs, editor extensions, and integrations.
+Community tools are cataloged in [COMMUNITY_TOOLS.md](https://github.com/steveyegge/beads/blob/main/docs/COMMUNITY_TOOLS.md), including third-party UIs, editor extensions, terminal interfaces, web UIs, and native apps.
 
 ## Notable Characteristics
 

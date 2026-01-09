@@ -1,6 +1,6 @@
 ---
 name: reference-context
-description: Ensures Claude checks relevant reference documentation before starting work. Use when you need context about Claude Code features, MCP servers, Skills, Hooks, project patterns, or domain knowledge from ClaudeDocs, CodexDocs, or references directories.
+description: Ensures Claude checks relevant reference documentation before starting work. Use when you need context about Claude Code features, MCP servers, Skills, Hooks, project patterns, or domain knowledge from docs/references/ or docs/agent-knowledge-base/ directories.
 ---
 
 # Reference Context
@@ -19,9 +19,11 @@ Activate when you need context about:
 
 ## Available Reference Sources
 
-### ClaudeDocs/ - Claude Code Documentation
+### docs/references/ - Raw Documentation
 
-Official documentation for Claude Code features:
+Complete reference documentation for humans and agents:
+
+**docs/references/ClaudeDocs/** - Claude Code Documentation:
 - `Skills-Overview.md` - Skills architecture, creation, usage
 - `Skills-best-practices.md` - Authoring effective skills
 - `Hooks.md` & `Hooks-how-to.md` - Event-driven automation
@@ -31,31 +33,36 @@ Official documentation for Claude Code features:
 - `subagents.md` - Subagent patterns
 - `Memory-management.md` - Context and conversation management
 
-### CodexDocs/ - Project-Specific Patterns
-
-Project-specific conventions and patterns:
+**docs/references/CodexDocs/** - Project-Specific Patterns:
 - Architecture decisions
 - Code organization
 - Team conventions
 - Development workflows
 
-### references/ - Domain Knowledge
+### docs/agent-knowledge-base/ - Agent Patterns & Tools
 
-Specialized domain knowledge:
-- Technical specifications
-- API documentation
-- Research papers
-- Industry standards
+Processed patterns, tools, and workflows for agents:
+
+**Quick start**: `claude-code-essentials.md` - Key concepts from ClaudeDocs
+
+**By category**:
+- `memory-state/` - Beads, Gas Town, Beads Viewer (persistent memory systems)
+- `coordination/` - MCP Agent Mail, MCP Inspector (multi-agent coordination)
+- `loops/` - Ralph Wiggum patterns (validation loops)
+- `context/` - Context engineering, AGENTS.md spec
+- `mobile/` - Tailscale, iPhone setup
+
+**Navigation**: `INDEX.md` - Complete guide to agent-knowledge-base resources
 
 ## Workflow
 
 ### 1. Identify What Context You Need
 
 Before starting work, ask:
-- **Am I using a Claude Code feature?** → Check ClaudeDocs/
-- **Does this project have conventions?** → Check CodexDocs/
-- **Do I need specialized knowledge?** → Check references/
-- **Am I implementing an integration?** → Check relevant API docs
+- **Am I using a Claude Code feature?** → Check docs/references/ClaudeDocs/ or docs/agent-knowledge-base/claude-code-essentials.md
+- **Does this project have conventions?** → Check docs/references/CodexDocs/
+- **Do I need specialized knowledge?** → Check docs/agent-knowledge-base/ (organized by category)
+- **Am I implementing an integration?** → Check relevant API docs or docs/agent-knowledge-base/INDEX.md
 
 ### 2. Search for Relevant Documentation
 
@@ -64,24 +71,30 @@ Use progressive disclosure - start broad, then get specific:
 **Step 1: Find relevant files**
 ```bash
 # List available references
-ls ClaudeDocs/
-ls CodexDocs/
-ls references/
+ls docs/references/ClaudeDocs/
+ls docs/references/CodexDocs/
+ls docs/agent-knowledge-base/
 ```
 
 **Step 2: Use Glob to find specific topics**
 ```bash
 # Example: Find Skills documentation
-glob "ClaudeDocs/*Skills*"
+glob "docs/references/ClaudeDocs/*Skills*"
+
+# Example: Find agent patterns
+glob "docs/agent-knowledge-base/**/*beads*.md"
 
 # Example: Find MCP references
-glob "**/*mcp*.md"
+glob "docs/**/*mcp*.md"
 ```
 
 **Step 3: Read the relevant file**
 ```bash
 # Read the specific documentation
-Read ClaudeDocs/Skills-Overview.md
+Read docs/references/ClaudeDocs/Skills-Overview.md
+
+# Or start with essentials
+Read docs/agent-knowledge-base/claude-code-essentials.md
 ```
 
 ### 3. Extract What You Need
@@ -118,25 +131,29 @@ References should inform each iteration:
 When implementing a Claude Code feature:
 
 ```markdown
-1. Check if feature exists in ClaudeDocs/
-2. Read overview to understand architecture
-3. Read best practices guide
-4. Review examples
-5. Implement following patterns shown
+1. Start with essentials: docs/agent-knowledge-base/claude-code-essentials.md
+2. Check full docs: docs/references/ClaudeDocs/
+3. Read overview to understand architecture
+4. Read best practices guide
+5. Review examples
+6. Implement following patterns shown
 ```
 
 **Example: Creating a Skill**
 ```bash
-# 1. Read Skills overview
-Read ClaudeDocs/Skills-Overview.md
+# 1. Quick start with essentials
+Read docs/agent-knowledge-base/claude-code-essentials.md
 
-# 2. Read best practices
-Read ClaudeDocs/Skills-best-practices.md
+# 2. Read full Skills overview
+Read docs/references/ClaudeDocs/Skills-Overview.md
 
-# 3. Look at example skill
+# 3. Read best practices
+Read docs/references/ClaudeDocs/Skills-best-practices.md
+
+# 4. Look at example skill
 Read .claude/skills/mcp-builder/SKILL.md
 
-# 4. Implement your skill following patterns
+# 5. Implement your skill following patterns
 ```
 
 ### Pattern 2: Project Conventions
@@ -144,7 +161,7 @@ Read .claude/skills/mcp-builder/SKILL.md
 When working on project code:
 
 ```markdown
-1. Check CodexDocs/ for conventions
+1. Check docs/references/CodexDocs/ for conventions
 2. Look at existing code patterns
 3. Follow established structure
 4. Maintain consistency
@@ -153,7 +170,7 @@ When working on project code:
 **Example: Adding a Component**
 ```bash
 # 1. Check for component guidelines
-glob "CodexDocs/*component*"
+glob "docs/references/CodexDocs/*component*"
 
 # 2. Look at existing components
 glob "src/components/*.tsx"
@@ -166,21 +183,21 @@ glob "src/components/*.tsx"
 When you need specialized knowledge:
 
 ```markdown
-1. Check references/ for relevant docs
-2. Search for specific topics
+1. Check docs/agent-knowledge-base/INDEX.md for navigation
+2. Search relevant category directory
 3. Extract key information
 4. Apply to your implementation
 ```
 
-**Example: Implementing OAuth**
+**Example: Setting up Beads**
 ```bash
-# 1. Find OAuth references
-glob "references/*oauth*"
+# 1. Check INDEX for navigation
+Read docs/agent-knowledge-base/INDEX.md
 
-# 2. Read specification
-Read references/oauth-spec.md
+# 2. Find Beads documentation
+Read docs/agent-knowledge-base/memory-state/github-beads.md
 
-# 3. Implement following spec
+# 3. Implement following patterns
 ```
 
 ## Best Practices
@@ -195,9 +212,10 @@ Don't load entire files upfront:
 ### Combine References
 
 Cross-reference multiple sources:
-- ClaudeDocs for Claude features
+- docs/references/ClaudeDocs/ for Claude Code features
+- docs/agent-knowledge-base/ for agent patterns and tools
 - Official docs for frameworks
-- CodexDocs for project patterns
+- docs/references/CodexDocs/ for project patterns
 
 ### Stay Current
 
@@ -218,47 +236,53 @@ Use references as guides, not templates:
 ### Scenario: Creating a Skill
 
 **References needed:**
-1. `ClaudeDocs/Skills-Overview.md` - Architecture and structure
-2. `ClaudeDocs/Skills-best-practices.md` - Authoring guidelines
-3. `.claude/skills/*/SKILL.md` - Example skills
+1. `docs/agent-knowledge-base/claude-code-essentials.md` - Quick reference
+2. `docs/references/ClaudeDocs/Skills-Overview.md` - Architecture and structure
+3. `docs/references/ClaudeDocs/Skills-best-practices.md` - Authoring guidelines
+4. `.claude/skills/*/SKILL.md` - Example skills
 
 **Process:**
-1. Read overview to understand YAML frontmatter requirements
-2. Read best practices for description patterns
-3. Look at examples for structure
-4. Create skill following patterns
+1. Read essentials for quick overview
+2. Read full overview to understand YAML frontmatter requirements
+3. Read best practices for description patterns
+4. Look at examples for structure
+5. Create skill following patterns
 
 ### Scenario: Setting Up MCP Server
 
 **References needed:**
-1. `ClaudeDocs/MCP.md` - MCP integration guide
-2. `.claude/skills/mcp-builder/SKILL.md` - MCP server builder skill
-3. Official MCP docs (web search)
+1. `docs/agent-knowledge-base/claude-code-essentials.md` - MCP basics
+2. `docs/references/ClaudeDocs/MCP.md` - Full MCP integration guide
+3. `.claude/skills/mcp-builder/SKILL.md` - MCP server builder skill
+4. Official MCP docs (web search)
 
 **Process:**
-1. Read MCP.md for integration patterns
-2. Use mcp-builder skill for implementation
-3. Reference official docs for specifics
+1. Read essentials for MCP concepts
+2. Read MCP.md for integration patterns
+3. Use mcp-builder skill for implementation
+4. Reference official docs for specifics
 
 ### Scenario: Configuring Hooks
 
 **References needed:**
-1. `ClaudeDocs/Hooks.md` - Hook concepts
-2. `ClaudeDocs/Hooks-how-to.md` - Implementation guide
-3. `.claude/hooks.json` - Existing hooks (if any)
+1. `docs/agent-knowledge-base/claude-code-essentials.md` - Hooks basics
+2. `docs/references/ClaudeDocs/Hooks.md` - Hook concepts
+3. `docs/references/ClaudeDocs/Hooks-how-to.md` - Implementation guide
+4. `.claude/hooks.json` - Existing hooks (if any)
 
 **Process:**
-1. Read Hooks.md for event types
-2. Read Hooks-how-to.md for configuration
-3. Check existing hooks for patterns
-4. Configure new hook
+1. Read essentials for hook overview
+2. Read Hooks.md for event types
+3. Read Hooks-how-to.md for configuration
+4. Check existing hooks for patterns
+5. Configure new hook
 
 ## Anti-Patterns
 
 ❌ Implementing features without checking documentation
 ❌ Assuming you know the API without verifying
 ❌ Loading entire reference files into context
-❌ Ignoring project-specific conventions in CodexDocs
+❌ Ignoring project-specific conventions in docs/references/CodexDocs/
 ❌ Using outdated patterns from memory
 ❌ Skipping examples in documentation
 
@@ -267,22 +291,28 @@ Use references as guides, not templates:
 **Before implementing anything:**
 
 ```markdown
-1. Is it a Claude feature? → ClaudeDocs/
-2. Is it project-specific? → CodexDocs/
-3. Is it specialized domain? → references/
+1. Is it a Claude feature? → docs/agent-knowledge-base/claude-code-essentials.md or docs/references/ClaudeDocs/
+2. Is it project-specific? → docs/references/CodexDocs/
+3. Is it specialized domain/tool? → docs/agent-knowledge-base/ (check INDEX.md for navigation)
 4. Is it external API? → Web search + official docs
 ```
 
 **Finding documentation:**
 
 ```bash
+# Start with essentials
+Read docs/agent-knowledge-base/claude-code-essentials.md
+
 # List what's available
-ls ClaudeDocs/
-ls CodexDocs/
-ls references/
+ls docs/references/ClaudeDocs/
+ls docs/references/CodexDocs/
+ls docs/agent-knowledge-base/
+
+# Check INDEX for agent knowledge base navigation
+Read docs/agent-knowledge-base/INDEX.md
 
 # Find specific topics
-glob "**/*{topic}*.md"
+glob "docs/**/*{topic}*.md"
 
 # Read relevant file
 Read {path}
