@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '../ui/button'
-import { DocumentSearch } from '@/lib/search/search'
 import type { SearchIndex, SearchResult } from '@/lib/search/types'
+
+// Lazy load search functionality
+let DocumentSearchClass: typeof import('@/lib/search/search').DocumentSearch | null = null
 
 interface SearchDialogProps {
   searchData?: SearchIndex[]
@@ -15,15 +17,22 @@ export function SearchDialog({ searchData = [] }: SearchDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
-  const [searchInstance, setSearchInstance] = useState<DocumentSearch | null>(null)
+  const [searchInstance, setSearchInstance] = useState<any | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  // Initialize search instance
+  // Lazy load and initialize search instance when dialog opens
   useEffect(() => {
-    if (searchData.length > 0) {
-      setSearchInstance(new DocumentSearch(searchData))
+    if (isOpen && searchData.length > 0 && !searchInstance) {
+      setIsLoading(true)
+      // Dynamically import search library only when needed
+      import('@/lib/search/search').then((module) => {
+        DocumentSearchClass = module.DocumentSearch
+        setSearchInstance(new module.DocumentSearch(searchData))
+        setIsLoading(false)
+      })
     }
-  }, [searchData])
+  }, [isOpen, searchData, searchInstance])
 
   // Keyboard shortcut
   useEffect(() => {
@@ -94,7 +103,11 @@ export function SearchDialog({ searchData = [] }: SearchDialogProps) {
               />
             </div>
             <div className="max-h-[400px] overflow-y-auto">
-              {!query.trim() ? (
+              {isLoading ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  Loading search...
+                </div>
+              ) : !query.trim() ? (
                 <div className="p-4 text-center text-sm text-muted-foreground">
                   Start typing to search documentation...
                 </div>

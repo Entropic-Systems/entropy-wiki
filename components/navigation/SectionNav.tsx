@@ -18,9 +18,9 @@ export function SectionNav() {
   const currentSection = pathname?.split('/')[1]
 
   return (
-    <nav className="border-b bg-muted/30">
+    <nav className="border-b bg-muted/30" aria-label="Main sections">
       <div className="container">
-        <div className="flex items-center space-x-1 overflow-x-auto py-2">
+        <div className="flex items-center space-x-1 overflow-x-auto py-2" role="list">
           {SECTIONS.map((section) => {
             const sectionSlug = section.href.slice(1)
             const isActive = currentSection === sectionSlug
@@ -35,7 +35,9 @@ export function SectionNav() {
                     ? "bg-background text-foreground font-medium shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                 )}
-                title={section.description}
+                aria-label={`${section.name}: ${section.description}`}
+                aria-current={isActive ? 'page' : undefined}
+                role="listitem"
               >
                 <span>{section.name}</span>
               </Link>

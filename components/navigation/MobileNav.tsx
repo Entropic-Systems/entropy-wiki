@@ -16,14 +16,22 @@ export function MobileNav() {
         size="icon"
         onClick={() => setIsOpen(!isOpen)}
         className="h-9 w-9"
+        aria-expanded={isOpen}
+        aria-controls="mobile-menu"
+        aria-label="Toggle navigation menu"
       >
         {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         <span className="sr-only">Toggle menu</span>
       </Button>
 
       {isOpen && (
-        <div className="fixed inset-0 top-14 z-50 grid h-[calc(100vh-3.5rem)] grid-flow-row auto-rows-max overflow-auto bg-background p-6 shadow-md animate-in slide-in-from-bottom-80 md:hidden">
-          <nav className="grid gap-4 text-sm font-medium">
+        <div
+          id="mobile-menu"
+          className="fixed inset-0 top-14 z-50 grid h-[calc(100vh-3.5rem)] grid-flow-row auto-rows-max overflow-auto bg-background p-6 shadow-md animate-in slide-in-from-bottom-80 md:hidden"
+          role="dialog"
+          aria-label="Mobile navigation"
+        >
+          <nav className="grid gap-4 text-sm font-medium" aria-label="Mobile sections">
             <Link
               href="/beads"
               onClick={() => setIsOpen(false)}

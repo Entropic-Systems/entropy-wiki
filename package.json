@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "npm run gen-search && next build",
     "start": "next start",
+    "analyze": "ANALYZE=true npm run build",
     "gen-meta": "node scripts/generate-meta.js",
     "gen-search": "node scripts/generate-search-index.js"
   },
@@ -32,6 +33,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.1",
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
     "autoprefixer": "^10.4.17",

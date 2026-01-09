@@ -13,10 +13,13 @@ export function Sidebar({ items }: SidebarProps) {
   const pathname = usePathname() || '/'
 
   return (
-    <aside className="fixed top-14 z-30 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block">
-      <div className="py-6 pr-6 lg:py-8">
+    <aside
+      className="fixed top-14 z-30 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block"
+      aria-label="Sidebar navigation"
+    >
+      <nav className="py-6 pr-6 lg:py-8" aria-label="Documentation navigation">
         <SidebarNav items={items} pathname={pathname} />
-      </div>
+      </nav>
     </aside>
   )
 }
@@ -51,11 +54,13 @@ function SidebarNav({ items, pathname, level = 0 }: SidebarNavProps) {
                   item.disabled && "cursor-not-allowed opacity-50",
                   level === 0 && "font-medium"
                 )}
+                aria-current={isActive ? 'page' : undefined}
+                aria-disabled={item.disabled}
               >
                 {item.title}
               </Link>
             ) : (
-              <div className="px-2 py-1.5 text-sm font-semibold text-foreground">
+              <div className="px-2 py-1.5 text-sm font-semibold text-foreground" role="heading" aria-level={level + 2}>
                 {item.title}
               </div>
             )}

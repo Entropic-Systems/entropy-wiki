@@ -39,9 +39,29 @@ export async function generateMetadata({ params }: DocPageProps) {
     }
   }
 
+  const title = doc.frontMatter.title
+  const description = doc.frontMatter.description || 'Entropy Wiki - Cyber-utilitarian monorepo for AI skills, prompts, and MCP toolsets'
+  const url = `https://entropy-wiki.vercel.app/${slug.join('/')}`
+
   return {
-    title: doc.frontMatter.title,
-    description: doc.frontMatter.description,
+    title: `${title} | Entropy Wiki`,
+    description,
+    openGraph: {
+      title: `${title} | Entropy Wiki`,
+      description,
+      url,
+      siteName: 'Entropy Wiki',
+      type: 'article',
+      locale: 'en_US',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | Entropy Wiki`,
+      description,
+    },
+    alternates: {
+      canonical: url,
+    },
   }
 }
 
