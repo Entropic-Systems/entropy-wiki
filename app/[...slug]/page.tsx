@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation'
-import { MDXRemote } from 'next-mdx-remote/rsc'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import { DocLayout } from '@/components/layout/DocLayout'
-import { components } from '@/components/mdx/MDXComponents'
 import { getDocBySlug, docExists } from '@/lib/mdx/get-doc-by-slug'
 import { getAllDocs } from '@/lib/mdx/get-all-docs'
 import { parseTableOfContents } from '@/lib/mdx/parse-toc'
@@ -76,7 +78,12 @@ export default async function DocPage({ params }: DocPageProps) {
             {doc.frontMatter.description}
           </p>
         )}
-        <MDXRemote source={doc.content} />
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw, rehypeSanitize]}
+        >
+          {doc.content}
+        </ReactMarkdown>
       </article>
     </DocLayout>
   )

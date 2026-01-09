@@ -78,29 +78,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Standards Section */}
-        <section className="container space-y-6 py-8 md:py-12 lg:py-24 bg-muted/50">
-          <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-            <h2 className="text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
-              Standards
-            </h2>
-            <ul className="max-w-[42rem] space-y-2 text-left text-muted-foreground sm:text-lg">
-              <li className="flex items-start gap-2">
-                <span className="mt-1.5">→</span>
-                <span>Keep entries short, dense, and operational</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-1.5">→</span>
-                <span>If a file can't be executed, it should at least be copy-pastable</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-1.5">→</span>
-                <span>Avoid fluff—every line should increase capability or reduce ambiguity</span>
-              </li>
-            </ul>
-          </div>
-        </section>
-
         {/* CTA Section */}
         <section className="container py-8 md:py-12 lg:py-24">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">

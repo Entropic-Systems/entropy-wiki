@@ -1,5 +1,3 @@
-import { MDXRemoteSerializeResult } from 'next-mdx-remote'
-
 export interface FrontMatter {
   title: string
   description?: string
@@ -17,12 +15,6 @@ export interface MDXDocument {
   filePath: string
 }
 
-export interface SerializedMDX {
-  mdxSource: MDXRemoteSerializeResult
-  frontMatter: FrontMatter
-  slug: string
-}
-
 export interface TableOfContentsItem {
   id: string
   title: string
@@ -31,10 +23,4 @@ export interface TableOfContentsItem {
 
 export interface TableOfContents {
   items: TableOfContentsItem[]
-}
-
-export interface MDXPageProps {
-  source: MDXRemoteSerializeResult
-  frontMatter: FrontMatter
-  toc?: TableOfContents
 }
