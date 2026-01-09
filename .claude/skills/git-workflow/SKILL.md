@@ -162,6 +162,63 @@ git status  # Should be clean
 git push
 ```
 
+### Step 6: Create Pull Request (with GitHub CLI)
+
+After pushing, create a PR using the **github plugin** (`gh` CLI):
+
+```bash
+# Push branch (if not already pushed)
+git push -u origin feature-branch
+
+# Create PR with comprehensive description
+gh pr create \
+  --title "feat(scope): Brief summary of changes" \
+  --body "$(cat <<'EOF'
+## Summary
+- Primary change 1
+- Primary change 2
+- Primary change 3
+
+## Side Products
+- Skills created/updated
+- Configuration changes
+- Documentation updates
+
+## Test Plan
+- [ ] Unit tests pass
+- [ ] Build succeeds
+- [ ] Manual testing complete
+- [ ] No console errors
+
+## Related Issues
+Fixes #123
+Related to #456
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+**PR workflow:**
+1. Commit all changes (Steps 1-4)
+2. Push to remote branch
+3. Create PR with `gh pr create`
+4. Include comprehensive summary from commit message
+5. Add test plan with checkboxes
+6. Link related issues
+7. Monitor CI status: `gh pr checks`
+
+**Quick PR creation:**
+```bash
+# Auto-generate PR from commits
+gh pr create --fill
+
+# Or with custom title
+gh pr create --title "Feature: Add dark mode" --fill-first
+```
+
+See [github plugin documentation](../../wiki/plugins/github) for advanced PR workflows.
+
 ## Comprehensive Commit Message Template
 
 ```markdown

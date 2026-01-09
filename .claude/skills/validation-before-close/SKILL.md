@@ -206,9 +206,11 @@ If validation fails:
 - Re-validate
 - Then close
 
-## Integration with Ralph Wiggum Loops
+## Integration with Ralph Loop Plugin
 
-Validation is the core of ralph wiggum loops:
+Validation is the core of ralph wiggum loops. Use the **ralph-loop plugin** to automate iterative validation:
+
+### Manual Ralph Wiggum Loop
 
 ```markdown
 Loop iteration:
@@ -223,6 +225,41 @@ Loop iteration:
    b. Close bead
    c. Move to next work
 ```
+
+### Automated Ralph Loop
+
+Use `/ralph-loop` command for automated validation iterations:
+
+```bash
+/ralph-loop "Complete feature implementation.
+Run build and tests on each iteration.
+Fix any failures.
+Output <promise>ALL VALIDATION PASSED</promise> when:
+- Build succeeds
+- All tests pass
+- No console errors
+- Deployment works" \
+--max-iterations 20 \
+--completion-promise "ALL VALIDATION PASSED"
+```
+
+**What happens:**
+1. Make changes to implement feature
+2. Run validation (build, tests, etc.)
+3. See failures in files/output
+4. Fix failures automatically
+5. Ralph Loop feeds same prompt back
+6. See previous fixes, identify remaining issues
+7. Continue until all validation passes
+8. Output promise tag to exit loop
+
+This is particularly effective for:
+- **Test-driven development** - Write tests, implement until passing
+- **Build error resolution** - Fix compilation errors iteratively
+- **Integration validation** - Ensure all parts work together
+- **Deployment debugging** - Iterate until deployed successfully
+
+See [ralph-loop plugin documentation](../../wiki/plugins/ralph-loop) for details.
 
 ## Validation Checklist by Project Type
 
