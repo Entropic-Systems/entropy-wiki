@@ -1,5 +1,25 @@
 # Agent Instructions
 
+## Project Context
+
+**entropy-wiki** is a cyber-utilitarian monorepo for AI skills, prompts, and MCP toolsets. We capture the chaos of real systems, compress it, and ship it as repeatable advantage.
+
+**Architecture:**
+- `docs/beads/`: Atomic logic snippets
+- `docs/skills-bank/`: Functional capabilities
+- `docs/prompt-bank/`: Categorized, high-performance prompts
+- `docs/tooling-mcp/`: MCP server configs, custom tool definitions, API bridge logic
+- `docs/orchestration/`: Multi-agent handoff protocols and state-management
+- `docs/context/`: MAP.md strategies, context pruning, token saving
+- `docs/lab/`: Learnings, failure logs, model-specific quirks
+
+**Standards:**
+- Keep entries short, dense, and operational
+- If a file can't be executed, it should at least be copy-pastable
+- Avoid fluff—every line should increase capability or reduce ambiguity
+
+---
+
 This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
 
 ## Quick Reference
