@@ -23,3 +23,9 @@ pnpm-debug.log*
 # bv (beads viewer) local config and caches
 .bv/
 .beads/.bv.lock
+
+# Vercel
+.vercel/
+
+# Playwright screenshots
+.playwright-mcp/
