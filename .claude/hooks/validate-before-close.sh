@@ -1,9 +1,9 @@
 #!/bin/bash
-# Hook: Validation Reminder for bd close
+# Hook: Validation Reminders for Bead Workflow
 #
-# This hook checks if a "bd close" command is being executed and
-# outputs a reminder about validation. It does NOT block the command
-# but ensures Claude sees the reminder in the hook output.
+# This hook provides reminders at key workflow points:
+# 1. When starting work (bd update --status=in_progress) - plan validation
+# 2. When closing (bd close) - verify validation was done
 #
 # Exit codes:
 #   0 = success (continue with command)
@@ -15,17 +15,34 @@ INPUT=$(cat)
 # Extract the command using Python (more portable than jq)
 COMMAND=$(echo "$INPUT" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('tool_input', {}).get('command', ''))" 2>/dev/null)
 
-# Check if this is a "bd close" command
+# Reminder when starting work on a bead
+if [[ "$COMMAND" == *"bd update"* ]] && [[ "$COMMAND" == *"in_progress"* ]]; then
+  cat >&2 << 'EOF'
+=== STARTING WORK ===
+Plan your validation approach now:
+  1. What defines "done" for this bead?
+  2. What tests will verify success?
+  3. What commands will validate?
+
+Entropy-wiki validation commands:
+  - npm run build        (always required)
+  - cd api && npm test   (API changes)
+  - npx playwright test  (frontend E2E)
+  - Manual smoke test    (UI changes)
+=====================
+EOF
+fi
+
+# Reminder before closing a bead
 if [[ "$COMMAND" == *"bd close"* ]]; then
-  # Output reminder to stderr (shown to Claude)
   cat >&2 << 'EOF'
 === VALIDATION REMINDER ===
 Before closing this bead, confirm:
   [ ] validation-before-close skill was invoked
-  [ ] Build passes (npm run build)
-  [ ] Tests pass (if applicable)
+  [ ] Build passes: npm run build
+  [ ] Tests pass: cd api && npm test
   [ ] Changes work as expected
-  [ ] Documentation updated (if needed)
+  [ ] No regressions introduced
 ===========================
 EOF
 fi

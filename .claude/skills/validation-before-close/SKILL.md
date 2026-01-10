@@ -493,3 +493,48 @@ bd close entropy-wiki-xyz
 ```
 
 **Result**: Bead closed with confidence that work is complete and working.
+
+## Entropy-Wiki Quick Reference
+
+**Use this for ALL entropy-wiki validation:**
+
+### Minimum Validation (Every Bead)
+```bash
+npm run build   # Must pass - no exceptions
+```
+
+### API Changes
+```bash
+npm run build
+cd api && npm test   # 16 tests, ~300ms
+```
+
+### Frontend Changes
+```bash
+npm run build
+npx playwright test  # Admin UI + Wiki pages
+```
+
+### Full Validation
+```bash
+npm run build
+cd api && npm test
+npx playwright test
+# Manual: visit localhost:3000, test key flows
+```
+
+### What Each Command Validates
+| Command | Validates |
+|---------|-----------|
+| `npm run build` | TypeScript, imports, Next.js pages |
+| `cd api && npm test` | API endpoints, auth, CRUD, database |
+| `npx playwright test` | Admin login, page management, wiki rendering |
+
+### Quick Decision Tree
+```
+Made code changes?
+├── Yes: npm run build
+│   ├── API changes? → cd api && npm test
+│   └── Frontend changes? → npx playwright test
+└── No (docs only): npm run build (verifies mdx/md)
+```
