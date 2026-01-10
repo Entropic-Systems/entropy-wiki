@@ -8,6 +8,11 @@ import { Breadcrumb } from '@/components/layout/Breadcrumb'
 import { getDocBySlug, docExists } from '@/lib/mdx/get-doc-by-slug'
 import { getAllDocs } from '@/lib/mdx/get-all-docs'
 import { buildSectionNavTree } from '@/lib/navigation/build-nav-tree'
+import { fetchPageFromApi, pageToMDXDocument } from '@/lib/api/server'
+import type { MDXDocument } from '@/lib/mdx/types'
+
+// Dynamic rendering - always fetch fresh from API
+export const dynamic = 'force-dynamic'
 
 interface DocPageProps {
   params: Promise<{
@@ -16,7 +21,40 @@ interface DocPageProps {
 }
 
 /**
+ * Get document from API first, fallback to filesystem
+ */
+async function getDocument(slug: string[]): Promise<MDXDocument | null> {
+  const slugString = slug.join('/')
+
+  // Try API first
+  const apiPage = await fetchPageFromApi(slugString)
+  if (apiPage) {
+    return pageToMDXDocument(apiPage, slug)
+  }
+
+  // Fallback to filesystem
+  return getDocBySlug(slug)
+}
+
+/**
+ * Check if document exists (API or filesystem)
+ */
+async function documentExists(slug: string[]): Promise<boolean> {
+  const slugString = slug.join('/')
+
+  // Try API first
+  const apiPage = await fetchPageFromApi(slugString)
+  if (apiPage) {
+    return true
+  }
+
+  // Fallback to filesystem
+  return docExists(slug)
+}
+
+/**
  * Generate static params for all documentation pages
+ * Uses filesystem for static generation (API pages are dynamic)
  */
 export async function generateStaticParams() {
   const docs = getAllDocs()
@@ -31,7 +69,7 @@ export async function generateStaticParams() {
  */
 export async function generateMetadata({ params }: DocPageProps) {
   const { slug } = await params
-  const doc = getDocBySlug(slug)
+  const doc = await getDocument(slug)
 
   if (!doc) {
     return {
@@ -71,12 +109,12 @@ export async function generateMetadata({ params }: DocPageProps) {
 export default async function DocPage({ params }: DocPageProps) {
   const { slug } = await params
 
-  // Check if doc exists
-  if (!docExists(slug)) {
+  // Check if doc exists (API or filesystem)
+  if (!await documentExists(slug)) {
     notFound()
   }
 
-  const doc = getDocBySlug(slug)
+  const doc = await getDocument(slug)
 
   if (!doc) {
     notFound()

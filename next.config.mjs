@@ -14,6 +14,18 @@ const nextConfig = {
         destination: '/beads',
         permanent: true,
       },
+      // Handle legacy .md extension URLs
+      {
+        source: '/:path*.md',
+        destination: '/:path*',
+        permanent: true,
+      },
+      // Handle README.md URLs -> parent directory
+      {
+        source: '/:path*/README',
+        destination: '/:path*',
+        permanent: true,
+      },
     ]
   },
 }
