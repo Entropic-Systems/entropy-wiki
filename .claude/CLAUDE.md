@@ -24,10 +24,14 @@
 5. Validate continuously until DoD met
 
 ### Phase 4: Completion
-1. Final validation
-2. Update documentation
-3. Close bead
-4. Suggest compaction if needed
+1. **INVOKE validation-before-close skill** (MANDATORY)
+2. Verify: build passes, tests pass, changes work
+3. Update documentation if needed
+4. Close bead only after validation passes
+5. Suggest compaction if needed
+
+> **HOOK ENFORCED**: A PreToolUse hook runs on all `bd close` commands
+> and outputs a validation reminder. Do not ignore this reminder.
 
 ## Core Principle
 
@@ -56,3 +60,25 @@ If you realize you need clarification during implementation:
 4. **Documentation**: Auto-update when changes are significant
 5. **Context**: Monitor usage, suggest compaction proactively
 6. **Models**: Use appropriate model for task complexity
+
+## Validation Requirements (CRITICAL)
+
+Before closing ANY bead, you MUST:
+
+1. **Invoke validation-before-close skill** - determines appropriate validation level
+2. **Run build**: `npm run build` must pass
+3. **Run tests**: if tests exist, they must pass
+4. **Verify functionality**: manually test if needed
+5. **Check for regressions**: ensure existing features still work
+
+**NEVER close a bead with:**
+- Failing builds
+- Failing tests
+- Untested changes
+- "I assume it works" reasoning
+
+**If validation fails:**
+1. Create bug bead for the issue
+2. Fix the issue
+3. Re-validate
+4. THEN close the original bead
