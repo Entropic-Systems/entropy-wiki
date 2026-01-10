@@ -60,7 +60,57 @@ This auto-generates `_meta.json` files for sidebar navigation. The wiki automati
 - **Styling**: Tailwind CSS with CSS variables for theming
 - **Markdown**: react-markdown with GFM support
 - **Search**: FlexSearch for client-side full-text search
-- **Deployment**: Vercel (optimized for static generation)
+- **Frontend Deployment**: Vercel (optimized for static generation)
+- **Backend API**: Express.js with PostgreSQL (see [api/README.md](./api/README.md))
+- **Backend Deployment**: Railway (PostgreSQL + Node.js)
+
+## Database-Backed Wiki (Optional)
+
+The wiki supports an optional database backend for dynamic content management with an admin UI.
+
+### Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Next.js App   │────▶│   Express API   │────▶│   PostgreSQL    │
+│   (Vercel)      │     │   (Railway)     │     │   (Railway)     │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+        │                                               │
+        │   Fallback if API unavailable                │
+        ▼                                               │
+┌─────────────────┐                                    │
+│  wiki/*.md      │◀───────────────────────────────────┘
+│  (Filesystem)   │        db:seed imports these
+└─────────────────┘
+```
+
+### Features
+
+- **Admin UI** at `/admin` for creating, editing, publishing pages
+- **Draft/Published workflow** with visibility controls
+- **Revision history** for all content changes
+- **Filesystem fallback** when API is unavailable (graceful degradation)
+- **Markdown import** via `npm run db:seed` in the api directory
+
+### Current State
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| API Endpoints | ✅ Working | Full CRUD with auth |
+| Admin UI | ✅ Working | Create, edit, delete, publish/unpublish |
+| PostgreSQL Schema | ✅ Working | Pages + revisions with FK constraints |
+| Railway Deployment | 🔧 Configured | Needs `ADMIN_PASSWORD` env var |
+| Vercel Integration | ✅ Working | Falls back to filesystem if API down |
+
+### Roadmap
+
+- [ ] User authentication (beyond single admin password)
+- [ ] Page versioning UI (view/restore previous revisions)
+- [ ] Collaborative editing
+- [ ] Media/image uploads
+- [ ] Search indexing from database
+
+See [api/README.md](./api/README.md) for detailed API documentation.
 
 ### Component Architecture
 
