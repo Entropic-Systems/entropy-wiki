@@ -2,10 +2,61 @@ name: Deploy to Vercel
 
 on:
   push:
+    branches: [master, feature/db-backed-wiki]
+  pull_request:
     branches: [master]
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: entropy_wiki_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install API dependencies
+        run: cd api && npm ci
+
+      - name: Run database migrations
+        run: cd api && npm run db:migrate
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/entropy_wiki_test
+
+      - name: Run API tests
+        run: cd api && npm test
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/entropy_wiki_test
+          ADMIN_PASSWORD: test-password
+
+      - name: Build frontend
+        run: npm run build
+
   deploy:
+    needs: test
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
