@@ -1,12 +1,32 @@
 import type {
   Page,
   PageWithContent,
+  PageTreeNode,
   PagesResponse,
   PageResponse,
   CreatePageRequest,
   UpdatePageRequest,
   ApiError,
 } from './types';
+
+// Bulk action types
+export type BulkAction = 'publish' | 'unpublish' | 'delete' | 'set_public' | 'set_private';
+
+export interface BulkActionRequest {
+  page_ids: string[];
+  action: BulkAction;
+}
+
+export interface BulkActionResult {
+  page_id: string;
+  success: boolean;
+  error?: string;
+}
+
+export interface BulkActionResponse {
+  message: string;
+  results: BulkActionResult[];
+}
 
 // API base URL - defaults to localhost for dev, can be overridden via env
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -144,6 +164,38 @@ class ApiClient {
   async deletePage(id: string): Promise<void> {
     await this.fetchWithAuth<{ message: string }>(`/admin/pages/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  // ============ Hierarchy & Bulk Operations ============
+
+  // Get the page tree (hierarchical structure)
+  async getPageTree(): Promise<PageTreeNode[]> {
+    const response = await this.fetchWithAuth<{ tree: PageTreeNode[] }>('/admin/pages/tree');
+    return response.tree;
+  }
+
+  // Move a page to a new parent with optional sort order
+  async movePage(id: string, parentId: string | null, sortOrder?: number): Promise<void> {
+    await this.fetchWithAuth<{ message: string }>(`/admin/pages/${id}/move`, {
+      method: 'POST',
+      body: JSON.stringify({ parent_id: parentId, sort_order: sortOrder }),
+    });
+  }
+
+  // Bulk action on multiple pages
+  async bulkAction(request: BulkActionRequest): Promise<BulkActionResponse> {
+    return this.fetchWithAuth<BulkActionResponse>('/admin/pages/bulk', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  // Reorder pages within a parent
+  async reorderPages(pageIds: string[], parentId: string | null): Promise<void> {
+    await this.fetchWithAuth<{ message: string }>('/admin/pages/reorder', {
+      method: 'POST',
+      body: JSON.stringify({ page_ids: pageIds, parent_id: parentId }),
     });
   }
 }
