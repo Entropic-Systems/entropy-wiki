@@ -279,6 +279,23 @@ export default function AdminDashboard() {
     refreshData()
   }
 
+  // Update page visibility
+  async function handleUpdateVisibility(pageId: string, visibility: 'public' | 'private') {
+    const response = await fetch(`${apiUrl}/admin/pages/${pageId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Password': password,
+      },
+      body: JSON.stringify({ visibility }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to update visibility' }))
+      throw new Error(error.message || 'Failed to update visibility')
+    }
+    refreshData()
+  }
+
   // Count total pages in tree
   const countTreePages = (nodes: PageTreeNode[]): number => {
     return nodes.reduce((acc, node) => {
@@ -361,6 +378,7 @@ export default function AdminDashboard() {
           onBulkSetPrivate={handleBulkSetPrivate}
           onRefresh={refreshData}
           onUpdateTitle={handleUpdateTitle}
+          onUpdateVisibility={handleUpdateVisibility}
         />
       )}
 

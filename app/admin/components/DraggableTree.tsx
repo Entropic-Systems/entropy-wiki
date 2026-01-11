@@ -37,6 +37,7 @@ interface DraggableTreeProps {
   onBulkSetPrivate?: (ids: string[]) => Promise<void>
   onRefresh?: () => void
   onUpdateTitle?: (id: string, title: string) => Promise<void>
+  onUpdateVisibility?: (id: string, visibility: 'public' | 'private') => Promise<void>
 }
 
 export function DraggableTree({
@@ -54,6 +55,7 @@ export function DraggableTree({
   onBulkSetPrivate,
   onRefresh,
   onUpdateTitle,
+  onUpdateVisibility,
 }: DraggableTreeProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -314,6 +316,7 @@ export function DraggableTree({
                     onUnpublish={onUnpublish}
                     onDelete={onDelete}
                     onUpdateTitle={onUpdateTitle}
+                    onUpdateVisibility={onUpdateVisibility}
                   />
                 ))}
               </SortableContext>

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Link from 'next/link'
 import type { PageTreeNode } from '@/lib/api/types'
+import { VisibilityToggle } from './VisibilityToggle'
 
 interface SortableTreeNodeProps {
   node: PageTreeNode
@@ -15,6 +16,7 @@ interface SortableTreeNodeProps {
   onUnpublish?: (id: string) => void
   onDelete?: (id: string, title: string) => void
   onUpdateTitle?: (id: string, title: string) => Promise<void>
+  onUpdateVisibility?: (id: string, visibility: 'public' | 'private') => Promise<void>
 }
 
 export function SortableTreeNode({
@@ -26,6 +28,7 @@ export function SortableTreeNode({
   onUnpublish,
   onDelete,
   onUpdateTitle,
+  onUpdateVisibility,
 }: SortableTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(depth < 2)
   const [isEditing, setIsEditing] = useState(false)
@@ -35,6 +38,23 @@ export function SortableTreeNode({
   const inputRef = useRef<HTMLInputElement>(null)
   const hasChildren = node.children && node.children.length > 0
   const isSelected = selectedIds.has(node.id)
+
+  // Count all descendants recursively for cascade confirmation
+  const childCount = useMemo(() => {
+    const countDescendants = (children: PageTreeNode[]): number => {
+      return children.reduce((count, child) => {
+        return count + 1 + countDescendants(child.children || [])
+      }, 0)
+    }
+    return countDescendants(node.children || [])
+  }, [node.children])
+
+  // Handler for visibility toggle
+  const handleVisibilityToggle = useCallback(async (newVisibility: 'public' | 'private') => {
+    if (onUpdateVisibility) {
+      await onUpdateVisibility(node.id, newVisibility)
+    }
+  }, [node.id, onUpdateVisibility])
 
   // Focus input when entering edit mode
   useEffect(() => {
@@ -277,17 +297,31 @@ export function SortableTreeNode({
           {node.status === 'published' ? 'PUB' : 'DFT'}
         </span>
 
-        {/* Visibility Badge */}
-        <span
-          className={`ml-1.5 px-1.5 py-0.5 rounded text-xs font-mono ${
-            node.effective_visibility === 'private'
-              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-              : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-          }`}
-        >
-          {node.effective_visibility === 'private' ? 'PRIV' : 'PUB'}
-          {node.inherited_visibility && <span className="ml-0.5 opacity-60">*</span>}
-        </span>
+        {/* Visibility Toggle */}
+        <div className="ml-1.5">
+          {onUpdateVisibility ? (
+            <VisibilityToggle
+              visibility={node.visibility}
+              effectiveVisibility={node.effective_visibility}
+              isInherited={node.inherited_visibility}
+              hasChildren={hasChildren}
+              childCount={childCount}
+              onToggle={handleVisibilityToggle}
+              size="sm"
+            />
+          ) : (
+            <span
+              className={`px-1.5 py-0.5 rounded text-xs font-mono ${
+                node.effective_visibility === 'private'
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+              }`}
+            >
+              {node.effective_visibility === 'private' ? 'PRIV' : 'PUB'}
+              {node.inherited_visibility && <span className="ml-0.5 opacity-60">*</span>}
+            </span>
+          )}
+        </div>
 
         {/* Actions */}
         <div className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
@@ -338,6 +372,7 @@ export function SortableTreeNode({
               onUnpublish={onUnpublish}
               onDelete={onDelete}
               onUpdateTitle={onUpdateTitle}
+              onUpdateVisibility={onUpdateVisibility}
             />
           ))}
         </div>
