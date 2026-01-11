@@ -10,6 +10,10 @@ export interface Page {
   current_draft_revision_id: string | null;
   created_at: string;
   updated_at: string;
+  // Hierarchy fields
+  parent_id: string | null;
+  sort_order: number;
+  effective_visibility: 'public' | 'private';
 }
 
 export interface PageRevision {
@@ -42,4 +46,11 @@ export interface UpdatePageRequest {
 export interface ApiError {
   error: string;
   message: string;
+}
+
+// Hierarchy types
+export interface PageTreeNode extends Page {
+  children: PageTreeNode[];
+  depth: number;
+  inherited_visibility: boolean; // true if effective_visibility differs from visibility
 }
