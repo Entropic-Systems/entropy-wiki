@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Link from 'next/link'
@@ -14,6 +14,7 @@ interface SortableTreeNodeProps {
   onPublish?: (id: string) => void
   onUnpublish?: (id: string) => void
   onDelete?: (id: string, title: string) => void
+  onUpdateTitle?: (id: string, title: string) => Promise<void>
 }
 
 export function SortableTreeNode({
@@ -24,10 +25,29 @@ export function SortableTreeNode({
   onPublish,
   onUnpublish,
   onDelete,
+  onUpdateTitle,
 }: SortableTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(depth < 2)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(node.title)
+  const [editError, setEditError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
   const hasChildren = node.children && node.children.length > 0
   const isSelected = selectedIds.has(node.id)
+
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
+
+  // Reset edit value when node changes
+  useEffect(() => {
+    setEditValue(node.title)
+  }, [node.title])
 
   const {
     attributes,
@@ -52,11 +72,81 @@ export function SortableTreeNode({
   }, [hasChildren, isExpanded])
 
   const handleRowClick = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('a, button')) {
+    if ((e.target as HTMLElement).closest('a, button, input')) {
       return
     }
     onSelect(node.id, e)
   }, [node.id, onSelect])
+
+  // Double-click to enter edit mode
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onUpdateTitle) {
+      setIsEditing(true)
+      setEditError(null)
+    }
+  }, [onUpdateTitle])
+
+  // Save title edit
+  const handleSaveTitle = useCallback(async () => {
+    const trimmedValue = editValue.trim()
+
+    // Validation
+    if (!trimmedValue) {
+      setEditError('Title cannot be empty')
+      return
+    }
+
+    // No change
+    if (trimmedValue === node.title) {
+      setIsEditing(false)
+      return
+    }
+
+    if (!onUpdateTitle) {
+      setIsEditing(false)
+      return
+    }
+
+    setIsSaving(true)
+    setEditError(null)
+
+    try {
+      await onUpdateTitle(node.id, trimmedValue)
+      setIsEditing(false)
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setIsSaving(false)
+    }
+  }, [editValue, node.id, node.title, onUpdateTitle])
+
+  // Cancel title edit
+  const handleCancelEdit = useCallback(() => {
+    setEditValue(node.title)
+    setEditError(null)
+    setIsEditing(false)
+  }, [node.title])
+
+  // Handle keyboard events in edit input
+  const handleEditKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSaveTitle()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleCancelEdit()
+    }
+  }, [handleSaveTitle, handleCancelEdit])
+
+  // Handle blur on edit input
+  const handleEditBlur = useCallback(() => {
+    // Only save on blur if no error
+    if (!editError) {
+      handleSaveTitle()
+    }
+  }, [editError, handleSaveTitle])
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -130,14 +220,51 @@ export function SortableTreeNode({
           )}
         </span>
 
-        {/* Page Title */}
-        <Link
-          href={`/admin/edit/${node.id}`}
-          className="flex-1 font-mono text-sm text-foreground hover:text-cyan-400 transition-colors truncate"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {node.title}
-        </Link>
+        {/* Page Title - Inline Editable */}
+        {isEditing ? (
+          <div className="flex-1 flex flex-col">
+            <div className="flex items-center gap-1">
+              <input
+                ref={inputRef}
+                type="text"
+                value={editValue}
+                onChange={(e) => { setEditValue(e.target.value); setEditError(null) }}
+                onKeyDown={handleEditKeyDown}
+                onBlur={handleEditBlur}
+                disabled={isSaving}
+                className={`
+                  flex-1 px-2 py-0.5 bg-background border rounded font-mono text-sm
+                  focus:outline-none focus:ring-2 focus:ring-cyan-500/50
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  ${editError ? 'border-red-500/60' : 'border-cyan-500/40'}
+                `}
+                onClick={(e) => e.stopPropagation()}
+              />
+              {isSaving && (
+                <svg className="w-4 h-4 animate-spin text-cyan-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+            </div>
+            {editError && (
+              <div className="text-xs text-red-400 font-mono mt-0.5">{editError}</div>
+            )}
+            <div className="text-xs text-cyan-500/50 font-mono mt-0.5">
+              Enter to save, Escape to cancel
+            </div>
+          </div>
+        ) : (
+          <Link
+            href={`/admin/edit/${node.id}`}
+            className="flex-1 font-mono text-sm text-foreground hover:text-cyan-400 transition-colors truncate"
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={handleDoubleClick}
+            title="Double-click to edit title"
+          >
+            {node.title}
+          </Link>
+        )}
 
         {/* Status Badge */}
         <span
@@ -210,6 +337,7 @@ export function SortableTreeNode({
               onPublish={onPublish}
               onUnpublish={onUnpublish}
               onDelete={onDelete}
+              onUpdateTitle={onUpdateTitle}
             />
           ))}
         </div>

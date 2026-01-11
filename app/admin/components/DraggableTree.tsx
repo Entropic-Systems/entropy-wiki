@@ -36,6 +36,7 @@ interface DraggableTreeProps {
   onBulkSetPublic?: (ids: string[]) => Promise<void>
   onBulkSetPrivate?: (ids: string[]) => Promise<void>
   onRefresh?: () => void
+  onUpdateTitle?: (id: string, title: string) => Promise<void>
 }
 
 export function DraggableTree({
@@ -52,6 +53,7 @@ export function DraggableTree({
   onBulkSetPublic,
   onBulkSetPrivate,
   onRefresh,
+  onUpdateTitle,
 }: DraggableTreeProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -311,6 +313,7 @@ export function DraggableTree({
                     onPublish={onPublish}
                     onUnpublish={onUnpublish}
                     onDelete={onDelete}
+                    onUpdateTitle={onUpdateTitle}
                   />
                 ))}
               </SortableContext>
@@ -329,6 +332,7 @@ export function DraggableTree({
         <div className="px-4 py-2 border-t border-cyan-500/20 bg-cyan-500/5">
           <div className="flex items-center gap-4 text-xs font-mono text-cyan-500/50">
             <span>Drag to reorder</span>
+            <span>Double-click title to edit</span>
             <span className="ml-auto">Shift+click for range, Cmd/Ctrl+click for multi-select</span>
           </div>
         </div>

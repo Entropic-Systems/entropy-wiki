@@ -262,6 +262,23 @@ export default function AdminDashboard() {
     }
   }
 
+  // Update page title inline
+  async function handleUpdateTitle(pageId: string, title: string) {
+    const response = await fetch(`${apiUrl}/admin/pages/${pageId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Password': password,
+      },
+      body: JSON.stringify({ title }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to update title' }))
+      throw new Error(error.message || 'Failed to update title')
+    }
+    refreshData()
+  }
+
   // Count total pages in tree
   const countTreePages = (nodes: PageTreeNode[]): number => {
     return nodes.reduce((acc, node) => {
@@ -343,6 +360,7 @@ export default function AdminDashboard() {
           onBulkSetPublic={handleBulkSetPublic}
           onBulkSetPrivate={handleBulkSetPrivate}
           onRefresh={refreshData}
+          onUpdateTitle={handleUpdateTitle}
         />
       )}
 
