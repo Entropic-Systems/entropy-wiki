@@ -168,16 +168,57 @@ export function SortableTreeNode({
     }
   }, [editError, handleSaveTitle])
 
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (isEditing) return // Don't handle navigation while editing
+
+    switch (e.key) {
+      case ' ':
+      case 'Enter':
+        // Space/Enter to toggle selection
+        e.preventDefault()
+        onSelect(node.id, e as unknown as React.MouseEvent)
+        break
+      case 'ArrowRight':
+        // Expand node
+        if (hasChildren && !isExpanded) {
+          e.preventDefault()
+          setIsExpanded(true)
+        }
+        break
+      case 'ArrowLeft':
+        // Collapse node
+        if (hasChildren && isExpanded) {
+          e.preventDefault()
+          setIsExpanded(false)
+        }
+        break
+      case 'e':
+        // 'e' to edit (if handler exists)
+        if (onUpdateTitle && !e.metaKey && !e.ctrlKey) {
+          e.preventDefault()
+          setIsEditing(true)
+        }
+        break
+    }
+  }, [isEditing, node.id, onSelect, hasChildren, isExpanded, onUpdateTitle])
+
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        className={`group flex items-center py-1.5 px-2 rounded-md transition-colors cursor-pointer ${
+        className={`tree-node-row group flex items-center py-1.5 px-2 rounded-md transition-colors cursor-pointer ${
           isSelected
             ? 'bg-cyan-500/20 border border-cyan-500/40'
             : 'hover:bg-cyan-500/10 border border-transparent'
         } ${isDragging ? 'shadow-lg ring-2 ring-cyan-500/50' : ''}`}
-        style={{ paddingLeft: `${depth * 20 + 8}px` }}
+        style={{ paddingLeft: `${depth * 20 + 8}px`, '--depth': depth } as React.CSSProperties}
         onClick={handleRowClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="treeitem"
+        aria-expanded={hasChildren ? isExpanded : undefined}
+        aria-selected={isSelected}
+        data-selected={isSelected}
       >
         {/* Drag Handle */}
         <div
@@ -360,7 +401,7 @@ export function SortableTreeNode({
 
       {/* Children */}
       {hasChildren && isExpanded && (
-        <div className="border-l border-cyan-500/20 ml-4">
+        <div className="tree-node-children ml-4" role="group">
           {node.children.map((child) => (
             <SortableTreeNode
               key={child.id}

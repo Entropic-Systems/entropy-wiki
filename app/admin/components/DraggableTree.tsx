@@ -325,7 +325,7 @@ export function DraggableTree({
 
           <DragOverlay>
             {activeNode && (
-              <div className="px-4 py-2 bg-cyan-500/20 border border-cyan-500/40 rounded-md font-mono text-sm shadow-lg">
+              <div className="tree-drag-overlay px-4 py-2 bg-cyan-500/20 border border-cyan-500/40 rounded-md font-mono text-sm">
                 {activeNode.title}
               </div>
             )}
@@ -333,10 +333,13 @@ export function DraggableTree({
         </DndContext>
 
         <div className="px-4 py-2 border-t border-cyan-500/20 bg-cyan-500/5">
-          <div className="flex items-center gap-4 text-xs font-mono text-cyan-500/50">
-            <span>Drag to reorder</span>
-            <span>Double-click title to edit</span>
-            <span className="ml-auto">Shift+click for range, Cmd/Ctrl+click for multi-select</span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono text-cyan-500/50">
+            <span className="hidden sm:inline">Drag to reorder</span>
+            <span>Double-click to edit</span>
+            <span className="hidden md:inline">Arrow keys to navigate</span>
+            <span className="hidden lg:inline">Space/Enter to select</span>
+            <span className="hidden lg:inline">E to edit title</span>
+            <span className="ml-auto hidden sm:inline">Shift+click range, Cmd/Ctrl multi-select</span>
           </div>
         </div>
       </div>

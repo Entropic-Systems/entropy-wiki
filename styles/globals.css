@@ -577,3 +577,176 @@ pre code {
     0 0 0 1px hsla(var(--accent-cyan), 0.2),
     0 0 10px hsla(var(--accent-cyan), 0.1);
 }
+
+/* =========================
+   Admin Tree Styles
+   ========================= */
+
+/* Tree node hover/selection glow */
+.tree-node-row {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tree-node-row:hover {
+  box-shadow: 0 0 10px hsla(var(--accent-cyan), 0.15);
+}
+
+.tree-node-row.selected,
+.tree-node-row[data-selected="true"] {
+  box-shadow: 0 0 15px hsla(var(--accent-cyan), 0.25);
+}
+
+/* Tree connector lines with gradient */
+.tree-node-children {
+  position: relative;
+}
+
+.tree-node-children::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    hsla(var(--accent-cyan), 0.5) 0%,
+    hsla(var(--accent-cyan), 0.2) 100%
+  );
+}
+
+.dark .tree-node-children::before {
+  box-shadow: 0 0 6px hsla(var(--accent-cyan), 0.3);
+}
+
+/* Keyboard focus indicator for tree nodes */
+.tree-node-row:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 4px hsl(var(--accent-cyan));
+}
+
+.dark .tree-node-row:focus-visible {
+  box-shadow:
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 4px hsl(var(--accent-cyan)),
+    0 0 15px hsla(var(--accent-cyan), 0.4);
+}
+
+/* Drag overlay glow */
+.tree-drag-overlay {
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 20px hsla(var(--accent-cyan), 0.3);
+}
+
+/* Mobile responsive tree */
+@media (max-width: 768px) {
+  .page-tree {
+    font-size: 0.875rem;
+  }
+
+  .tree-node-row {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    min-height: 44px; /* Touch target size */
+  }
+
+  /* Stack badges on mobile */
+  .tree-node-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  /* Show actions always on mobile (no hover) */
+  .tree-node-actions {
+    opacity: 1 !important;
+  }
+
+  /* Reduce indentation on mobile */
+  .tree-node-row {
+    padding-left: calc(var(--depth, 0) * 12px + 8px) !important;
+  }
+}
+
+/* Admin loading spinner */
+@keyframes admin-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.admin-spinner {
+  animation: admin-spin 1s linear infinite;
+}
+
+/* Admin error state */
+.admin-error {
+  background: hsla(0, 84%, 60%, 0.1);
+  border: 1px solid hsla(0, 84%, 60%, 0.3);
+  color: hsl(0, 84%, 60%);
+}
+
+.dark .admin-error {
+  background: hsla(0, 63%, 31%, 0.2);
+  border-color: hsla(0, 84%, 60%, 0.4);
+  box-shadow: 0 0 10px hsla(0, 84%, 60%, 0.1);
+}
+
+/* Admin login form styling */
+.admin-login-form input {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  transition: all 0.2s ease;
+}
+
+.admin-login-form input:focus {
+  border-color: hsl(var(--accent-cyan));
+  box-shadow: 0 0 0 3px hsla(var(--accent-cyan), 0.1);
+}
+
+.dark .admin-login-form input:focus {
+  box-shadow:
+    0 0 0 3px hsla(var(--accent-cyan), 0.2),
+    0 0 15px hsla(var(--accent-cyan), 0.1);
+}
+
+/* Admin header cyber styling */
+.admin-header {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--card)) 0%,
+    hsl(var(--background)) 100%
+  );
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.dark .admin-header {
+  border-bottom-color: hsla(var(--accent-cyan), 0.2);
+  box-shadow: 0 1px 20px hsla(var(--accent-cyan), 0.05);
+}
+
+/* Visibility toggle animations */
+.visibility-toggle {
+  transition: all 0.15s ease;
+}
+
+.visibility-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Modal backdrop blur */
+.admin-modal-backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Inline editor transition */
+.inline-editor input {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
