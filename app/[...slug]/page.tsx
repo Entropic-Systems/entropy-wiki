@@ -11,8 +11,9 @@ import { buildSectionNavTree } from '@/lib/navigation/build-nav-tree'
 import { fetchPageFromApi, pageToMDXDocument } from '@/lib/api/server'
 import type { MDXDocument } from '@/lib/mdx/types'
 
-// Dynamic rendering - always fetch fresh from API
-export const dynamic = 'force-dynamic'
+// Use ISR with 60 second revalidation for fresh content
+// This allows static generation while still checking API for updates
+export const revalidate = 60
 
 interface DocPageProps {
   params: Promise<{

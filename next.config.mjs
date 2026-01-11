@@ -9,11 +9,6 @@ const nextConfig = {
   reactStrictMode: true,
   async redirects() {
     return [
-      {
-        source: '/',
-        destination: '/beads',
-        permanent: true,
-      },
       // Handle legacy .md extension URLs
       {
         source: '/:path*.md',

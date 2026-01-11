@@ -1,19 +1,9 @@
 {
-  "status": "starting",
-  "started_at": "2026-01-11T11:00:00-05:00",
+  "status": "running",
+  "started_at": "2026-01-11T11:45:00-05:00",
   "active_ralphs": [],
   "completed_beads": [],
   "failed_beads": [],
   "total_iterations": 0,
-  "ready_beads": [
-    "entropy-wiki-p72",
-    "entropy-wiki-16h", 
-    "entropy-wiki-gcj",
-    "entropy-wiki-4qs",
-    "entropy-wiki-x9h",
-    "entropy-wiki-9vm",
-    "entropy-wiki-nx6",
-    "entropy-wiki-19k",
-    "entropy-wiki-qys"
-  ]
+  "ready_beads": ["entropy-wiki-31s", "entropy-wiki-b20"]
 }
