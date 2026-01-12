@@ -1,25 +1,26 @@
 import { Pool, PoolClient } from 'pg';
 
-// Determine SSL settings
-// Railway internal connections (*.railway.internal) don't use SSL
-// External/proxy connections might need SSL
+// Log database configuration on startup
 const dbUrl = process.env.DATABASE_URL || '';
-const isInternalRailway = dbUrl.includes('.railway.internal');
-const needsSsl = !isInternalRailway && (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT);
-
-// Create connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-  ssl: needsSsl ? { rejectUnauthorized: false } : false,
+console.log('Database config:', {
+  hasUrl: !!dbUrl,
+  host: dbUrl.match(/@([^:\/]+)/)?.[1] || 'unknown',
+  isInternal: dbUrl.includes('.railway.internal'),
 });
 
-// Log connection errors
+// Create connection pool - no SSL for Railway internal connections
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+  // Don't use SSL for internal Railway connections
+  ssl: false,
+});
+
+// Log connection errors but don't exit
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+  console.error('Database pool error:', err.message);
 });
 
 // Query helper
