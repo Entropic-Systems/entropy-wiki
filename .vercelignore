@@ -1,6 +1,9 @@
 # Ignore beads directory (git-backed issue tracker, not needed for build)
 .beads/
 
+# Ignore API directory (deployed separately on Railway, not Vercel)
+api/
+
 # Ignore local config files
 *.local.md
 *.sock
