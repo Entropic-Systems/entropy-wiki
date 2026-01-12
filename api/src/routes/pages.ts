@@ -11,46 +11,35 @@ interface NavTreeNode {
   items: NavTreeNode[];
 }
 
-// GET /pages/nav - Get navigation tree of published pages
+// GET /pages/nav - Get navigation sections (direct children of home only)
 router.get('/nav', async (_req: Request, res: Response) => {
   try {
+    // Find the home page (root page with slug 'home' or null parent)
+    const homeResult = await query<Page>(`
+      SELECT id FROM pages
+      WHERE slug = 'home' AND status = 'published'
+      LIMIT 1
+    `);
+
+    // Get direct children of home (these are the main sections)
+    // If no home page exists, get root-level pages (parent_id IS NULL)
+    const homeId = homeResult.rows[0]?.id;
+
     const result = await query<Page>(`
       SELECT id, slug, title, parent_id, sort_order
       FROM pages
       WHERE status = 'published'
+        AND ${homeId ? 'parent_id = $1' : 'parent_id IS NULL AND slug != $1'}
       ORDER BY sort_order, title
-    `);
+    `, [homeId || 'home']);
 
-    // Build navigation tree from flat list
-    const pageMap = new Map<string, { page: Page; children: Page[] }>();
-    const roots: Page[] = [];
+    // Convert to navigation format (flat list of sections, no nested items)
+    const navTree: NavTreeNode[] = result.rows.map(page => ({
+      title: page.title,
+      href: `/${page.slug}`,
+      items: [], // No nested items in top navbar
+    }));
 
-    // First pass: create map
-    for (const page of result.rows) {
-      pageMap.set(page.id, { page, children: [] });
-    }
-
-    // Second pass: build tree structure
-    for (const page of result.rows) {
-      if (page.parent_id && pageMap.has(page.parent_id)) {
-        pageMap.get(page.parent_id)!.children.push(page);
-      } else {
-        roots.push(page);
-      }
-    }
-
-    // Convert to navigation format
-    function toNavNode(page: Page): NavTreeNode {
-      const data = pageMap.get(page.id);
-      const children = data?.children || [];
-      return {
-        title: page.title,
-        href: `/${page.slug}`,
-        items: children.map(toNavNode),
-      };
-    }
-
-    const navTree = roots.map(toNavNode);
     res.json({ nav: navTree });
   } catch (err) {
     console.error('Error fetching navigation:', err);
