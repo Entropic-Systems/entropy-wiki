@@ -1,13 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useAdminContext } from './context'
 import { Button } from '@/components/ui/button'
 import { DraggableTree } from './components/DraggableTree'
+import { CascadeUnpublishDialog } from './components/CascadeUnpublishDialog'
 import type { Page, PageTreeNode } from '@/lib/api/types'
 
 type ViewMode = 'list' | 'tree'
+
+interface UnpublishDialogState {
+  isOpen: boolean
+  pageId: string
+  pageTitle: string
+  descendantCount: number
+}
 
 export default function AdminDashboard() {
   const { password } = useAdminContext()
@@ -16,6 +24,12 @@ export default function AdminDashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>('tree')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [unpublishDialog, setUnpublishDialog] = useState<UnpublishDialogState>({
+    isOpen: false,
+    pageId: '',
+    pageTitle: '',
+    descendantCount: 0,
+  })
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -92,14 +106,39 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleUnpublish(pageId: string, descendantCount?: number) {
-    // Show confirmation if there are children that will be cascade unpublished
-    if (descendantCount && descendantCount > 0) {
-      if (!confirm(`This will unpublish this page and ${descendantCount} child page${descendantCount !== 1 ? 's' : ''}. Continue?`)) {
-        return
+  // Find page title from tree
+  const findPageTitle = useCallback((pageId: string): string => {
+    const findInTree = (nodes: PageTreeNode[]): string | null => {
+      for (const node of nodes) {
+        if (node.id === pageId) return node.title
+        if (node.children) {
+          const found = findInTree(node.children)
+          if (found) return found
+        }
       }
+      return null
+    }
+    return findInTree(tree) || 'this page'
+  }, [tree])
+
+  async function handleUnpublish(pageId: string, descendantCount?: number) {
+    // Show dialog if there are children that will be cascade unpublished
+    if (descendantCount && descendantCount > 0) {
+      const title = findPageTitle(pageId)
+      setUnpublishDialog({
+        isOpen: true,
+        pageId,
+        pageTitle: title,
+        descendantCount,
+      })
+      return
     }
 
+    // No children, unpublish directly
+    await performUnpublish(pageId)
+  }
+
+  async function performUnpublish(pageId: string) {
     try {
       const response = await fetch(`${apiUrl}/admin/pages/${pageId}/unpublish`, {
         method: 'POST',
@@ -120,6 +159,15 @@ export default function AdminDashboard() {
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to unpublish page')
     }
+  }
+
+  function handleUnpublishConfirm() {
+    performUnpublish(unpublishDialog.pageId)
+    setUnpublishDialog({ isOpen: false, pageId: '', pageTitle: '', descendantCount: 0 })
+  }
+
+  function handleUnpublishCancel() {
+    setUnpublishDialog({ isOpen: false, pageId: '', pageTitle: '', descendantCount: 0 })
   }
 
   async function handlePublishSection(pageId: string, pageTitle: string) {
@@ -479,6 +527,18 @@ export default function AdminDashboard() {
           </table>
         </div>
       )}
+
+      {/* Cascade Unpublish Confirmation Dialog */}
+      <CascadeUnpublishDialog
+        isOpen={unpublishDialog.isOpen}
+        pageId={unpublishDialog.pageId}
+        pageTitle={unpublishDialog.pageTitle}
+        descendantCount={unpublishDialog.descendantCount}
+        apiUrl={apiUrl}
+        password={password}
+        onConfirm={handleUnpublishConfirm}
+        onCancel={handleUnpublishCancel}
+      />
     </div>
   )
 }
