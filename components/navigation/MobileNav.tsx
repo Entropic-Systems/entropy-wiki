@@ -14,7 +14,7 @@ interface MobileNavProps {
   sections?: SectionItem[]
 }
 
-// Default sections as fallback when not provided dynamically
+// Default sections as fallback when API unavailable
 const DEFAULT_SECTIONS: SectionItem[] = [
   { title: 'Beads', href: '/beads' },
   { title: 'Gastown', href: '/gastown' },
@@ -26,20 +26,40 @@ const DEFAULT_SECTIONS: SectionItem[] = [
 ]
 
 /**
- * Mobile navigation - uses dynamic sections if provided, falls back to defaults
+ * Mobile navigation - fetches sections dynamically from API
  */
 export function MobileNav({ sections }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [dynamicSections, setDynamicSections] = useState<SectionItem[]>(sections || DEFAULT_SECTIONS)
 
-  // If no sections passed, try to fetch them from an API endpoint
+  // Fetch sections from API for dynamic navigation
   useEffect(() => {
-    if (!sections) {
-      // Use default sections - in future could fetch from API
-      setDynamicSections(DEFAULT_SECTIONS)
-    } else {
+    if (sections) {
       setDynamicSections(sections)
+      return
     }
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    fetch(`${apiUrl}/pages/nav`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.nav && Array.isArray(data.nav)) {
+          // Only show top-level sections (pages with children or important pages)
+          const topLevelSections = data.nav
+            .filter((item: any) => item.items?.length > 0 || item.href === '/home')
+            .map((item: any) => ({
+              title: item.title,
+              href: item.href,
+            }))
+          if (topLevelSections.length > 0) {
+            setDynamicSections(topLevelSections)
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch navigation:', err)
+        // Keep using defaults on error
+      })
   }, [sections])
 
   return (

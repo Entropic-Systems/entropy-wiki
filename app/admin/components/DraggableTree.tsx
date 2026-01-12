@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -70,6 +70,27 @@ export function DraggableTree({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   )
+
+  // Sort tree nodes: pages with children first, then leaf pages
+  const sortTree = useCallback((nodes: PageTreeNode[]): PageTreeNode[] => {
+    const sorted = [...nodes].sort((a, b) => {
+      const aHasChildren = a.children && a.children.length > 0
+      const bHasChildren = b.children && b.children.length > 0
+      // Parent pages first
+      if (aHasChildren && !bHasChildren) return -1
+      if (!aHasChildren && bHasChildren) return 1
+      // Then by sort_order
+      return (a.sort_order || 0) - (b.sort_order || 0)
+    })
+    // Recursively sort children
+    return sorted.map(node => ({
+      ...node,
+      children: node.children ? sortTree(node.children) : []
+    }))
+  }, [])
+
+  // Get sorted tree for display
+  const sortedTree = useMemo(() => sortTree(tree), [tree, sortTree])
 
   // Flatten tree for operations
   const flattenTree = useCallback((nodes: PageTreeNode[]): PageTreeNode[] => {
@@ -271,13 +292,13 @@ export function DraggableTree({
           onDragEnd={handleDragEnd}
         >
           <div className="p-2 max-h-[600px] overflow-auto">
-            {tree.length === 0 ? (
+            {sortedTree.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <p className="font-mono text-sm text-muted-foreground">No pages yet</p>
               </div>
             ) : (
               <SortableContext items={flatIds} strategy={verticalListSortingStrategy}>
-                {tree.map((node) => (
+                {sortedTree.map((node) => (
                   <SortableTreeNode
                     key={node.id}
                     node={node}

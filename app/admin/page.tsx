@@ -34,6 +34,7 @@ export default function AdminDashboard() {
         headers: {
           'X-Admin-Password': password,
         },
+        cache: 'no-store',
       })
 
       if (!response.ok) {
@@ -56,6 +57,7 @@ export default function AdminDashboard() {
         headers: {
           'X-Admin-Password': password,
         },
+        cache: 'no-store',
       })
 
       if (!response.ok) {

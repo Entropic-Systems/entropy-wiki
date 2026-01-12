@@ -25,6 +25,7 @@ export default function EditPage({ params }: EditPageProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
+  const [saveSuccess, setSaveSuccess] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function EditPage({ params }: EditPageProps) {
         headers: {
           'X-Admin-Password': password,
         },
+        cache: 'no-store', // Always fetch fresh data in admin
       })
 
       if (!response.ok) {
@@ -57,6 +59,7 @@ export default function EditPage({ params }: EditPageProps) {
   async function handleSave() {
     setIsSaving(true)
     setError('')
+    setSaveSuccess(false)
 
     try {
       const response = await fetch(`${apiUrl}/admin/pages/${id}`, {
@@ -69,15 +72,21 @@ export default function EditPage({ params }: EditPageProps) {
           title,
           content_md: content,
         }),
+        cache: 'no-store',
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save page')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `Failed to save page (${response.status})`)
       }
 
-      // Refresh page data
+      // Refresh page data to confirm save
       await fetchPage()
+      setSaveSuccess(true)
+      // Clear success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000)
     } catch (err) {
+      console.error('Save error:', err)
       setError(err instanceof Error ? err.message : 'Failed to save page')
     } finally {
       setIsSaving(false)
@@ -210,6 +219,15 @@ export default function EditPage({ params }: EditPageProps) {
       {error && (
         <div className="text-sm text-destructive bg-destructive/10 px-4 py-2 rounded">
           {error}
+        </div>
+      )}
+
+      {saveSuccess && (
+        <div className="text-sm text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-4 py-2 rounded flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Changes saved as draft. Publish to make visible on public site.
         </div>
       )}
 

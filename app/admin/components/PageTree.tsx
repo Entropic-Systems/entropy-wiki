@@ -37,13 +37,34 @@ export function PageTree({
   const [isBulkLoading, setIsBulkLoading] = useState(false)
   const [expandKey, setExpandKey] = useState(0)
 
+  // Sort tree nodes: pages with children first, then leaf pages
+  const sortedTree = useMemo(() => {
+    const sortNodes = (nodes: PageTreeNode[]): PageTreeNode[] => {
+      const sorted = [...nodes].sort((a, b) => {
+        const aHasChildren = a.children && a.children.length > 0
+        const bHasChildren = b.children && b.children.length > 0
+        // Parent pages first
+        if (aHasChildren && !bHasChildren) return -1
+        if (!aHasChildren && bHasChildren) return 1
+        // Then by sort_order
+        return (a.sort_order || 0) - (b.sort_order || 0)
+      })
+      // Recursively sort children
+      return sorted.map(node => ({
+        ...node,
+        children: node.children ? sortNodes(node.children) : []
+      }))
+    }
+    return sortNodes(tree)
+  }, [tree])
+
   // Flatten tree for shift-click range selection
   const flattenedIds = useMemo(() => {
     const flatten = (nodes: PageTreeNode[]): string[] => {
       return nodes.flatMap(node => [node.id, ...flatten(node.children || [])])
     }
-    return flatten(tree)
-  }, [tree])
+    return flatten(sortedTree)
+  }, [sortedTree])
 
   const handleSelect = useCallback((id: string, event: React.MouseEvent) => {
     setSelectedIds(prev => {
@@ -214,7 +235,7 @@ export function PageTree({
 
         {/* Tree Content */}
         <div className="p-2 max-h-[600px] overflow-auto" key={expandKey}>
-          {tree.length === 0 ? (
+          {sortedTree.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <svg className="w-12 h-12 text-cyan-500/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -224,7 +245,7 @@ export function PageTree({
             </div>
           ) : (
             <div className="space-y-0.5">
-              {tree.map((node) => (
+              {sortedTree.map((node) => (
                 <TreeNode
                   key={node.id}
                   node={node}
