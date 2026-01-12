@@ -8,7 +8,6 @@ import { Breadcrumb } from '@/components/layout/Breadcrumb'
 import { getDocBySlug, docExists } from '@/lib/mdx/get-doc-by-slug'
 import { getAllDocs } from '@/lib/mdx/get-all-docs'
 import { buildSectionNavTree } from '@/lib/navigation/build-nav-tree'
-import { fetchPageFromApi, pageToMDXDocument } from '@/lib/api/server'
 import type { MDXDocument } from '@/lib/mdx/types'
 
 // Use ISR with 60 second revalidation for fresh content
@@ -22,40 +21,19 @@ interface DocPageProps {
 }
 
 /**
- * Get document from filesystem first, fallback to API
- * Filesystem is prioritized for static generation reliability
+ * Get document from filesystem only
+ * API fallback disabled due to Railway database issues
  */
-async function getDocument(slug: string[]): Promise<MDXDocument | null> {
-  // Try filesystem first (more reliable for static generation)
-  const fsDoc = getDocBySlug(slug)
-  if (fsDoc) {
-    return fsDoc
-  }
-
-  // Fallback to API for dynamic content
-  const slugString = slug.join('/')
-  const apiPage = await fetchPageFromApi(slugString)
-  if (apiPage) {
-    return pageToMDXDocument(apiPage, slug)
-  }
-
-  return null
+function getDocument(slug: string[]): MDXDocument | null {
+  return getDocBySlug(slug)
 }
 
 /**
- * Check if document exists (filesystem or API)
- * Filesystem is prioritized for static generation reliability
+ * Check if document exists in filesystem
+ * API fallback disabled due to Railway database issues
  */
-async function documentExists(slug: string[]): Promise<boolean> {
-  // Try filesystem first
-  if (docExists(slug)) {
-    return true
-  }
-
-  // Fallback to API
-  const slugString = slug.join('/')
-  const apiPage = await fetchPageFromApi(slugString)
-  return apiPage !== null
+function documentExists(slug: string[]): boolean {
+  return docExists(slug)
 }
 
 /**
@@ -75,7 +53,7 @@ export async function generateStaticParams() {
  */
 export async function generateMetadata({ params }: DocPageProps) {
   const { slug } = await params
-  const doc = await getDocument(slug)
+  const doc = getDocument(slug)
 
   if (!doc) {
     return {
@@ -115,12 +93,12 @@ export async function generateMetadata({ params }: DocPageProps) {
 export default async function DocPage({ params }: DocPageProps) {
   const { slug } = await params
 
-  // Check if doc exists (API or filesystem)
-  if (!await documentExists(slug)) {
+  // Check if doc exists in filesystem
+  if (!documentExists(slug)) {
     notFound()
   }
 
-  const doc = await getDocument(slug)
+  const doc = getDocument(slug)
 
   if (!doc) {
     notFound()
