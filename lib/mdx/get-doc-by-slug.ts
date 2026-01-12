@@ -5,6 +5,9 @@ import type { MDXDocument } from './types'
 
 const DOCS_DIR = path.join(process.cwd(), 'wiki')
 
+// Build-time debug logging
+const DEBUG_BUILD = process.env.NODE_ENV === 'production'
+
 /**
  * Convert slug to file path
  * Examples:
@@ -23,12 +26,25 @@ function slugToFilePath(slug: string[]): string | null {
     path.join(DOCS_DIR, ...slug, 'README.mdx'),
   ]
 
+  if (DEBUG_BUILD) {
+    console.log(`[slugToFilePath] Slug: ${slug.join('/')}, DOCS_DIR: ${DOCS_DIR}`)
+    console.log(`[slugToFilePath] CWD: ${process.cwd()}`)
+    console.log(`[slugToFilePath] Wiki exists: ${fs.existsSync(DOCS_DIR)}`)
+  }
+
   for (const filePath of possiblePaths) {
-    if (fs.existsSync(filePath)) {
+    const exists = fs.existsSync(filePath)
+    if (DEBUG_BUILD) {
+      console.log(`[slugToFilePath] Checking: ${filePath} - exists: ${exists}`)
+    }
+    if (exists) {
       return filePath
     }
   }
 
+  if (DEBUG_BUILD) {
+    console.log(`[slugToFilePath] No file found for slug: ${slug.join('/')}`)
+  }
   return null
 }
 
