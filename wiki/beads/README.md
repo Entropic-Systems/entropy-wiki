@@ -1,6 +1,6 @@
 # Beads System Manual
 
-**Version:** 1.0
+**Version:** 1.0.1
 **Purpose:** Technical reference for AI agents managing persistent memory and multi-session work
 
 ## Overview
