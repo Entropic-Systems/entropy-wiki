@@ -1,15 +1,19 @@
 import { Pool, PoolClient } from 'pg';
 
-// Create connection pool with SSL support for Railway
+// Determine SSL settings
+// Railway internal connections (*.railway.internal) don't use SSL
+// External/proxy connections might need SSL
+const dbUrl = process.env.DATABASE_URL || '';
+const isInternalRailway = dbUrl.includes('.railway.internal');
+const needsSsl = !isInternalRailway && (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT);
+
+// Create connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
-  // Railway requires SSL in production
-  ssl: process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT
-    ? { rejectUnauthorized: false }
-    : undefined,
+  ssl: needsSsl ? { rejectUnauthorized: false } : false,
 });
 
 // Log connection errors
