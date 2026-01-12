@@ -12,7 +12,7 @@ interface SortableTreeNodeProps {
   selectedIds: Set<string>
   onSelect: (id: string, event: React.MouseEvent) => void
   onPublish?: (id: string) => void
-  onUnpublish?: (id: string) => void
+  onUnpublish?: (id: string, descendantCount?: number) => void
   onPublishSection?: (id: string, title: string) => void
   onUnpublishSection?: (id: string, title: string) => void
   onDelete?: (id: string, title: string) => void
@@ -351,13 +351,25 @@ export function SortableTreeNode({
             </button>
           ) : (
             <button
-              onClick={(e) => { e.stopPropagation(); onUnpublish?.(node.id) }}
-              className="p-1 text-yellow-400/70 hover:text-yellow-400 transition-colors"
-              title="Unpublish page"
+              onClick={(e) => { e.stopPropagation(); onUnpublish?.(node.id, descendantCount) }}
+              className={`p-1 transition-colors flex items-center gap-0.5 ${
+                hasChildren
+                  ? 'text-orange-400/70 hover:text-orange-400'
+                  : 'text-yellow-400/70 hover:text-yellow-400'
+              }`}
+              title={hasChildren
+                ? `Unpublish page (will also unpublish ${descendantCount} child page${descendantCount !== 1 ? 's' : ''})`
+                : 'Unpublish page'}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
+              {/* Cascade warning indicator */}
+              {hasChildren && (
+                <span className="text-[9px] font-mono text-orange-400 bg-orange-500/20 px-1 rounded" title={`${descendantCount} children will also be unpublished`}>
+                  +{descendantCount}
+                </span>
+              )}
             </button>
           )}
 

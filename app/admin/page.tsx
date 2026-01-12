@@ -92,7 +92,14 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleUnpublish(pageId: string) {
+  async function handleUnpublish(pageId: string, descendantCount?: number) {
+    // Show confirmation if there are children that will be cascade unpublished
+    if (descendantCount && descendantCount > 0) {
+      if (!confirm(`This will unpublish this page and ${descendantCount} child page${descendantCount !== 1 ? 's' : ''}. Continue?`)) {
+        return
+      }
+    }
+
     try {
       const response = await fetch(`${apiUrl}/admin/pages/${pageId}/unpublish`, {
         method: 'POST',
@@ -105,6 +112,10 @@ export default function AdminDashboard() {
         throw new Error('Failed to unpublish page')
       }
 
+      const data = await response.json()
+      if (data.unpublished_count > 1) {
+        alert(`Unpublished ${data.unpublished_count} pages`)
+      }
       refreshData()
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to unpublish page')

@@ -26,7 +26,7 @@ interface DraggableTreeProps {
   tree: PageTreeNode[]
   isLoading?: boolean
   onPublish?: (id: string) => void
-  onUnpublish?: (id: string) => void
+  onUnpublish?: (id: string, descendantCount?: number) => void
   onPublishSection?: (id: string, title: string) => void
   onUnpublishSection?: (id: string, title: string) => void
   onDelete?: (id: string, title: string) => void
