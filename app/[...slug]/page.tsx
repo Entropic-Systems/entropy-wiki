@@ -22,35 +22,40 @@ interface DocPageProps {
 }
 
 /**
- * Get document from API first, fallback to filesystem
+ * Get document from filesystem first, fallback to API
+ * Filesystem is prioritized for static generation reliability
  */
 async function getDocument(slug: string[]): Promise<MDXDocument | null> {
-  const slugString = slug.join('/')
+  // Try filesystem first (more reliable for static generation)
+  const fsDoc = getDocBySlug(slug)
+  if (fsDoc) {
+    return fsDoc
+  }
 
-  // Try API first
+  // Fallback to API for dynamic content
+  const slugString = slug.join('/')
   const apiPage = await fetchPageFromApi(slugString)
   if (apiPage) {
     return pageToMDXDocument(apiPage, slug)
   }
 
-  // Fallback to filesystem
-  return getDocBySlug(slug)
+  return null
 }
 
 /**
- * Check if document exists (API or filesystem)
+ * Check if document exists (filesystem or API)
+ * Filesystem is prioritized for static generation reliability
  */
 async function documentExists(slug: string[]): Promise<boolean> {
-  const slugString = slug.join('/')
-
-  // Try API first
-  const apiPage = await fetchPageFromApi(slugString)
-  if (apiPage) {
+  // Try filesystem first
+  if (docExists(slug)) {
     return true
   }
 
-  // Fallback to filesystem
-  return docExists(slug)
+  // Fallback to API
+  const slugString = slug.join('/')
+  const apiPage = await fetchPageFromApi(slugString)
+  return apiPage !== null
 }
 
 /**
