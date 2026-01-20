@@ -5,53 +5,44 @@ description: Multi-agent coordination patterns and autonomous execution loops
 
 # Orchestration
 
-Multi-agent coordination patterns and handoff protocols.
+Orchestration is the art of coordinating AI agents to complete complex tasks autonomously. This is where you go from using AI to commanding AI.
 
-## What is Orchestration?
+## What You'll Learn
 
-Orchestration defines how multiple AI agents work together to solve complex problems. It covers task distribution, state management, and agent-to-agent communication.
+- **What is Orchestration?** - The fundamentals of multi-agent coordination
+- **Frameworks** - Production-grade orchestration systems (Gastown, Flywheel)
+- **Memory** - Persistent context across sessions (Beads)
+- **Patterns** - Workflow patterns like Ralph loops
 
-## Core Concepts
+## Sections
 
-Key orchestration patterns include:
-- Sequential workflows (agent chains)
-- Parallel execution (concurrent tasks)
-- Hierarchical coordination (supervisor/worker)
-- Event-driven handoffs
+### [Introduction](./introduction)
+Start here if you're new to orchestration. Learn what AI agents are, why coordination matters, and the key concepts.
 
-## Ralph Loops (Autonomous Execution)
+### [Frameworks](./frameworks)
+Multi-agent orchestration frameworks for scaling AI work:
+- **Gastown** - Industrial-strength multi-agent coordination
+- **Flywheel** - (Coming soon)
 
-Ralph loops enable autonomous AI development by iterating until tasks are complete:
+### [Memory](./memory)
+Persistence and context recovery across sessions:
+- **Beads** - Issue tracking with dependencies and memory
 
-- [Ralph Technique](/orchestration/ralph-technique) - Core concepts and economic model
-- [Ralph Plugin](/orchestration/ralph-plugin) - Claude Code plugin implementation with Stop Hook
-- [Ralph Enterprise](/orchestration/ralph-enterprise) - Production-ready implementation with safety guardrails
-- [RepoMirror Experiment](/orchestration/repo-mirror) - Headless loop analysis for code porting
+### [Patterns](./patterns)
+Workflow patterns for autonomous execution:
+- **Ralph Loop** - Iterative loops until task complete
 
-## Multi-Agent Workflows
-
-- [Claude Code Multi-Agent Workflow](/orchestration/claude-code-multi-agent-workflow) - Coordination patterns
-
-## Key Patterns
+## Key Concepts
 
 ### Stop Hook Architecture
-
 Intercepts exit attempts to force verification before loop termination, enabling autonomous iteration without human intervention.
 
 ### Circuit Breaker Pattern
-
 Monitors failure indicators (no progress, repeated errors, declining output) and opens automatically to prevent runaway execution.
 
 ### 80/20 Rule
-
 Optimal configuration for autonomous tasks: spend 80% of time on the primary task, 20% on testing and verification.
 
-## Protocols
+## Multi-Agent Workflows
 
-This section documents:
-- Handoff protocols between agents
-- State synchronization patterns
-- Error handling and recovery
-- Performance optimization strategies
-
-Use these patterns to build robust multi-agent systems that coordinate effectively and handle failures gracefully.
+- [Claude Code Multi-Agent Workflow](./claude-code-multi-agent-workflow) - Coordination patterns for parallel agent execution

@@ -1,12 +1,7 @@
 {
-  "beads": "Beads",
-  "gastown": "Gastown",
-  "skills-bank": "Skills Bank",
-  "prompt-bank": "Prompt Bank",
-  "tooling-mcp": "Tooling & MCP",
+  "[...slug]": "[...slug]",
+  "claude-code": "Claude Code",
   "orchestration": "Orchestration",
-  "context": "Context",
-  "lab": "Lab",
   "layout": "Layout",
   "page": "Page"
 }

@@ -563,6 +563,6 @@ Authentication:
 
 ## Related Documentation
 
-- [git-workflow Skill](../.claude/skills/git-workflow/SKILL.md) - Comprehensive commit workflow
+- [Core Concepts](../core-concepts) - Skills, hooks, and commands
 - [Official GitHub CLI Docs](https://cli.github.com/manual/) - Complete command reference
 - [GitHub CLI GitHub Repository](https://github.com/cli/cli) - Source and issue tracking

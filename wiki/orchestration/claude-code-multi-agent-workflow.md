@@ -559,12 +559,11 @@ Parallel   Sequential
 
 ## Related Documentation
 
-- [Beads Workflows](/docs/beads/workflows.md) - Multi-session patterns
-- [Beads Lifecycle](/docs/beads/lifecycle.md) - State machine and single-focus rule
-- [Beads Dependencies](/docs/beads/dependencies.md) - PageRank and blocking logic
-- [Beads CLI Reference](/docs/beads/cli-reference.md) - Complete CLI reference
-- [AGENTS.md](/AGENTS.md) - Session completion protocol
-- [.beads/config.yaml](/.beads/config.yaml) - Daemon auto-sync configuration
+- [Beads Workflows](./memory/workflows) - Multi-session patterns
+- [Beads Lifecycle](./memory/lifecycle) - State machine and single-focus rule
+- [Beads Dependencies](./memory/dependencies) - PageRank and blocking logic
+- [Beads CLI Reference](./memory/cli-reference) - Complete CLI reference
+- [Memory Overview](./memory/) - Persistence and context
 
 ---
 

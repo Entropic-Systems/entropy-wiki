@@ -61,7 +61,7 @@ gt mayor attach
 
 ## Integration with Beads
 
-Gastown uses [Beads](../beads/README.md) for issue tracking and dependency management:
+Gastown uses [Beads](../memory/beads) for issue tracking and dependency management:
 
 ```bash
 bd ready              # Find work with no blockers
@@ -70,7 +70,7 @@ bd update <id> --status=in_progress  # Claim work
 bd close <id>         # Complete work
 ```
 
-See [Beads Documentation](../beads/) for complete reference.
+See [Beads Documentation](../memory/beads) for complete reference.
 
 ## Architecture
 
@@ -90,9 +90,9 @@ Hooks (Git Worktrees)
 - `/references/gastown_readme.md` - Full CLI documentation
 
 **Related Documentation:**
-- `/docs/beads/` - Beads issue tracking system
-- `/docs/orchestration/` - Multi-agent handoff protocols
-- `/references/agent_mail_readme.md` - Agent communication system
+- [Beads](../memory/beads) - Issue tracking system
+- [Memory](../memory/) - Persistence and context
+- [Patterns](../patterns/) - Workflow patterns
 
 ## Common Workflows
 

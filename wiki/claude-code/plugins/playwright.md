@@ -323,6 +323,6 @@ browser_evaluate(`
 
 ## Related Documentation
 
-- [playwright-testing Skill](../.claude/skills/playwright-testing/SKILL.md) - Structured testing patterns
-- [validation-before-close Skill](../.claude/skills/validation-before-close/SKILL.md) - Integration with validation workflow
+- [Core Concepts](../core-concepts) - Skills, hooks, and commands
+- [Plugins Overview](./) - All Claude Code plugins
 - [Playwright MCP Official Docs](https://github.com/microsoft/playwright-mcp) - MCP server documentation
