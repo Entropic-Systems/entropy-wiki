@@ -1,38 +1,73 @@
 [
   {
-    "id": "beads",
+    "id": "claude-code",
     "title": "README",
-    "content": "Beads System Manual Version: 1.0.1 Purpose: Technical reference for AI agents managing persistent memory and multi-session work  Overview Beads is a git-backed issue tracking system designed for AI agents to maintain context across conversation sessions, manage dependencies, and coordinate complex multi-session work. This manual serves as training data for understanding beads workflows and memory management.  Core Concepts What is a Bead? - A persistent work item tracked across sessions - Stored in  directory as structured data - Version-controlled via git for history and collaboration - Supports dependencies, blocking relationships, and priority When to Use Beads vs TodoWrite: - Use Beads for:   - Multi-session work that spans conversations   - Tasks with blocking dependencies   - Strategic work requiring context recovery after compaction   - Discovered work that needs tracking beyond current session - Use TodoWrite for:   - Simple single-session execution   - Immediate task breakdown",
-    "url": "/beads",
-    "category": "beads"
+    "content": "Claude Code Your command center for AI-assisted development. Claude Code is the terminal-based AI coding agent that turns you into a Droid overlord.  What You'll Learn - Introduction - What Claude Code is and why it's the focus - Agent Comparison - Claude Code vs Codex vs Amp - Core Concepts - Skills, hooks, commands, and agents - Plugins - Extend Claude Code with MCP servers  Quick Links - Introduction - Start here - Agent Comparison - Compare coding agents - Core Concepts - Understand the building blocks - Plugins - Browser automation, GitHub CLI, and more",
+    "url": "/claude-code",
+    "category": "claude-code"
   },
   {
-    "id": "beads/cli-reference",
-    "title": "cli-reference",
-    "content": "CLI Reference: bd Command Complete reference for the  command-line interface.  Command Structure  Global Options Available for all commands: -  - Show help for command -  - Show beads version ---  Core Commands   Initialize beads in the current project. What it does: - Creates  directory structure - Initializes config and index files - Sets up git integration - Configures hooks When to use: - First-time setup in a new repository - After cloning a repo without beads ---   Create a new issue. Options: -  - Issue title (required) -  - Issue type: , , ,  (default: ) -  - Priority: 0-4 or P0-P4 (0=critical, 4=backlog, default: 2) -  - Assign to user -  - Issue description -  - Associate with epic Examples: Parallel Creation: For efficiency when creating multiple issues, use parallel subagents. ---   List issues with optional filters. Options: -  - Filter by status: , , ,  -  - Filter by type: , , ,  -  - Filter by priority: 0-4 or P0-P4 -  - Filter by assignee -  - Show issues in epic Examp",
-    "url": "/beads/cli-reference",
-    "category": "beads"
+    "id": "claude-code/agent-comparison",
+    "title": "agent-comparison",
+    "content": "Agent Comparison Claude Code, Codex, and Amp are all AI coding agents that work similarly. Understanding their differences helps you choose the right tool - or use them all strategically.  The Big Picture These agents share the same paradigm: - Terminal/CLI-based interaction - File system access - Command execution - Agentic loops (work until task complete) The main differences? Provider, pricing, and specific capabilities.  Why Multiple Agents? Smart developers use multiple agents because: 1. Cost optimization - Spread usage across different pricing tiers 2. Capability matching - Some tasks suit certain models better 3. Availability - Fallback when one service is down 4. Plan limits - Work around monthly caps  Comparison Table | Feature | Claude Code | Codex (OpenAI) | Amp | |---------|-------------|----------------|-----| | Provider | Anthropic | OpenAI | Sourcegraph | | Model | Claude | GPT-4 | Various | | Skills system | Yes | No | No | | Hooks (events) | Yes | Limited | No | | MCP",
+    "url": "/claude-code/agent-comparison",
+    "category": "claude-code"
   },
   {
-    "id": "beads/dependencies",
-    "title": "dependencies",
-    "content": "Dependency Resolution  Overview Beads uses a dependency graph to model blocking relationships between issues. Dependencies enable: - Explicit ordering constraints (\"A must complete before B\") - Automatic priority surfacing via PageRank - Blocking/unblocking cascade detection - Strategic work sequencing  Dependency Model  Terminology Dependency Relationship: Graph Representation: - Nodes: Individual issues - Edges: Dependency relationships (directed) - Direction: Edge points from dependent to dependency   -  means \"A depends on B\" (B blocks A)  Dependency Commands Add Dependency: Remove Dependency: View Dependencies:  PageRank-Based Priority  Why PageRank? Traditional priority systems (P0-P4) are static and don't account for strategic impact. PageRank dynamically calculates importance based on how many issues a given issue unblocks. Core Insight: Issues that unblock many other issues should be prioritized, even if their nominal priority is lower.  How It Works 1. Graph Construction:    ",
-    "url": "/beads/dependencies",
-    "category": "beads"
+    "id": "claude-code/core-concepts",
+    "title": "core-concepts",
+    "content": "Core Concepts Claude Code's power comes from four building blocks: Skills, Hooks, Commands, and Agents. Master these to become a true Droid overlord.  Skills Skills are reusable workflows you invoke with slash commands.  Creating Skills Skills live in  as markdown files:  Why Skills Matter - Consistency - Same workflow every time - Reusability - Define once, use everywhere - Shareability - Check into git, share with team  Hooks Hooks run code in response to events. They're how you automate Claude Code.  Hook Types | Hook | When it Fires | |------|---------------| |  | Before Claude uses a tool | |  | After a tool completes | |  | When Claude starts | |  | When Claude finishes |  Example Hook  Commands Commands are built-in actions you can invoke: | Command | What it Does | |---------|--------------| |  | Show available commands | |  | Clear conversation | |  | Compress context | |  | Enter planning mode |  Agents (Sub-agents) Claude Code can spawn specialized sub-agents for parallel wo",
+    "url": "/claude-code/core-concepts",
+    "category": "claude-code"
   },
   {
-    "id": "beads/lifecycle",
-    "title": "lifecycle",
-    "content": "Bead Lifecycle  State Model A bead progresses through discrete states that represent its position in the work pipeline. Understanding these states is critical for effective memory management and work coordination.  States  1. Open (Initial State) Meaning: Issue has been created but work has not started. Characteristics: - Newly created issues start here - Available for assignment - May have dependencies (blockers) - Visible in  Valid Transitions: - →  (work begins) - →  (cancelled or determined unnecessary) Commands:  2. In Progress (Active Work) Meaning: An agent or human is actively working on this issue. Characteristics: - Indicates current focus area - Should have assignee - One agent should work on one issue at a time - Visible in  Valid Transitions: - →  (dependency or external blocker discovered) - →  (work completed) - →  (work paused/reassigned) Commands:  3. Blocked (Waiting) Meaning: Work cannot proceed due to dependencies or external factors. Characteristics: - Has explicit",
-    "url": "/beads/lifecycle",
-    "category": "beads"
+    "id": "claude-code/introduction",
+    "title": "introduction",
+    "content": "Introduction to Claude Code Claude Code is Anthropic's terminal-based AI coding assistant. It's not just another chatbot - it's a full development environment that can read, write, and execute code autonomously.  Why Claude Code? Claude Code stands out from other AI coding tools because it: - Runs in your terminal - Native CLI experience, not a web app - Has file system access - Reads and writes files directly - Executes commands - Runs tests, builds, and git operations - Supports MCP - Model Context Protocol for extending capabilities - Skills & Hooks - Customize behavior with reusable patterns  Core Architecture  Getting Started 1. Install Claude Code from Anthropic 2. Run  in your project directory 3. Start giving instructions That's it. Claude Code will read your codebase and help you build.  Next Steps - Agent Comparison - See how Claude Code compares to Codex and Amp - Core Concepts - Learn about skills, hooks, and commands - Plugins - Extend with browser automation and more",
+    "url": "/claude-code/introduction",
+    "category": "claude-code"
   },
   {
-    "id": "beads/workflows",
-    "title": "workflows",
-    "content": "Common Workflows Practical patterns for using beads effectively in different scenarios.  Daily Development Flow  Morning: Finding Work  During Work: Discovering Dependencies  End of Day: Wrapping Up ---  Feature Development Workflow  Phase 1: Planning  Phase 2: Execution  Phase 3: Completion ---  Bug Fix Workflow  Rapid Fix (Single Session)  Complex Bug (Multi-Session) ---  Refactoring Workflow  Incremental Refactor ---  Blocked Work Recovery  Scenario: External Blocker ---  Collaboration Workflow  Taking Over Work  Sync and Conflict Resolution ---  Context Recovery Workflow  After Conversation Compaction  After Long Break ---  Strategic Planning Workflow  Epic with Parallel Tracks ---  Maintenance Workflow  Weekly Cleanup  Monthly Audit ---  Anti-Patterns to Avoid  1. Too Many In-Progress Issues Bad: Good:  2. Ignoring Dependencies Bad: Good:  3. Manual Priority Override Bad: Good:  4. Creating Without Planning Bad: Good:  5. Not Using Comments Bad: Good: ---  Summary: Key Principles ",
-    "url": "/beads/workflows",
-    "category": "beads"
+    "id": "claude-code/plugins",
+    "title": "README",
+    "content": "Plugins Plugins extend Claude Code with specialized capabilities via MCP (Model Context Protocol) servers.  Available Plugins  Playwright Browser automation for visual testing, functional validation, and layout debugging.  GitHub CLI Native GitHub operations - PRs, issues, code review directly from Claude Code.  Frontend Design Production-grade UI creation with bold aesthetic direction.  Wiki Ingest Content capture and wiki entry creation.  How Plugins Work Plugins are MCP servers that give Claude new tools: Once configured, Claude can use browser automation:  Why MCP Matters MCP is Claude's extension system. It lets you: - Add new capabilities without modifying Claude - Share plugins across projects - Build custom tools for your workflow Think of MCP servers as \"apps\" for Claude Code.",
+    "url": "/claude-code/plugins",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/plugins/frontend-design",
+    "title": "frontend-design",
+    "content": "Frontend Design Plugin Production-grade interface creation with bold aesthetic direction that avoids generic AI patterns.  Overview The Frontend Design plugin guides creation of distinctive, memorable user interfaces with exceptional attention to aesthetic details and creative choices. It produces real working code (HTML/CSS/JS, React, Vue, etc.) that is: - Visually striking - Memorable and distinctive - Production-grade - Functional and performant - Cohesive - Clear aesthetic point-of-view - Refined - Meticulously detailed  Core Philosophy Avoid \"AI slop\" - Generic aesthetics that scream \"made by AI\": - ❌ Overused fonts (Inter, Roboto, Arial, system fonts) - ❌ Cliched colors (purple gradients on white backgrounds) - ❌ Predictable layouts and component patterns - ❌ Cookie-cutter design lacking context-specific character Embrace bold direction - Commit to a clear conceptual vision: - ✅ Distinctive font pairings - ✅ Cohesive color systems with personality - ✅ Unexpected layouts and compo",
+    "url": "/claude-code/plugins/frontend-design",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/plugins/github",
+    "title": "github",
+    "content": "GitHub CLI Integration Native GitHub operations through the  command for pull requests, issues, code review, and repository management.  Overview GitHub CLI () integration enables Claude Code to interact directly with GitHub repositories through the Bash tool. This provides: - Pull request creation - Create PRs with comprehensive descriptions - Issue management - View, create, and update issues - Code review - Comment on PRs, view diffs, check status - Repository operations - Clone, fork, view details - Release management - Create releases, view tags - GitHub Actions - View workflow runs, check CI status  Installation  1. Install GitHub CLI macOS: Linux: Windows:  2. Authenticate Follow the prompts to authenticate via browser or token.  3. Verify Installation  Core Commands  Pull Requests  Create PR  View PRs  PR Comments  Issues  Create Issue  Manage Issues  Repository  Clone & Fork  Releases  Workflows  View CI Status  Integration with Git Workflow The GitHub CLI enhances the git-wor",
+    "url": "/claude-code/plugins/github",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/plugins/playwright",
+    "title": "playwright",
+    "content": "Playwright Plugin Browser automation for visual testing, functional validation, and layout debugging via Model Context Protocol (MCP) integration.  Overview The Playwright plugin provides a complete browser automation toolkit through MCP, enabling: - Visual regression testing - Screenshot comparisons before/after changes - Functional validation - Verify user interactions and flows - Layout debugging - Inspect CSS, DOM structure, and rendering issues - Responsive testing - Test across different viewport sizes - Accessibility checks - Validate ARIA attributes and semantics  Installation & Setup  1. Configure MCP Server Add to  in project root:  2. Restart Claude Code The MCP server loads on startup. Restart to activate Playwright tools.  3. Verify Installation Check that Playwright tools are available: -  - Navigate to URL -  - Capture accessibility snapshot -  - Take screenshots -  - Click elements -  - Run JavaScript in page context  Available Tools  Navigation -  - Load a page -  - Go",
+    "url": "/claude-code/plugins/playwright",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/plugins/wiki-ingest",
+    "title": "Wiki Ingest",
+    "content": "Wiki Ingest Ingest external content (URLs or text) into the entropy-wiki with automatic classification and routing.  Usage  How It Works  Section Classification | Section | Content Types | |---------|--------------| |  | Skills, hooks, agents, plugins, MCP | |  | Multi-agent, coordination, frameworks, memory, patterns |  Decision Logic Enhance existing when: - Content has >60% overlap with existing entry - Adds details, examples, or updates to existing topic Create new when: - Topic fits section but no similar entry exists - Distinct subtopic warranting standalone entry Stage when: - Content doesn't clearly fit any section - Needs manual review and organization  Output Format New entries include frontmatter:  Post-Ingestion After creating new entries:  See Also - Plugins Overview - All Claude Code plugins - Core Concepts - Skills, hooks, commands",
+    "url": "/claude-code/plugins/wiki-ingest",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/quick-start",
+    "title": "quick-start",
+    "content": "Quick Start Guide Get from zero to commanding AI agents in 5 minutes.  Step 1: Install Claude Code  Step 2: Start a Session Navigate to your project and run: Claude Code will: 1. Read your codebase 2. Start an interactive session 3. Wait for your instructions  Step 3: Give Your First Command Try something simple: Claude will analyze your project and give you an overview.  Step 4: Make Changes Now try making a change: Watch as Claude: 1. Analyzes what documentation would be useful 2. Creates the file 3. Shows you the result  Step 5: Use a Skill Skills are pre-built workflows. Try the commit skill: This will: 1. Check git status 2. Stage appropriate changes 3. Generate a commit message 4. Create the commit (with your approval)  What's Next? You just commanded an AI agent to do your bidding. Here's where to go deeper:  Learn Claude Code Fundamentals - Introduction - What Claude Code is - Core Concepts - Skills, hooks, commands, agents - Plugins - Extend with MCP servers  Understand Orches",
+    "url": "/claude-code/quick-start",
+    "category": "claude-code"
   },
   {
     "id": "content-mapping",
@@ -84,27 +119,6 @@
     "category": "context"
   },
   {
-    "id": "gastown",
-    "title": "README",
-    "content": "Gastown Documentation Multi-agent orchestration system for Claude Code with persistent work tracking.  Overview Gastown is a workspace manager that coordinates multiple AI agents working on different tasks. Instead of losing context when agents restart, Gastown persists work state in git-backed hooks, enabling reliable multi-agent workflows. This directory contains comprehensive documentation for implementing and operating Gastown rigs.  Documentation  GUPP - Gastown Unified Propulsion Protocol ⭐ The Industrial Constitution of a Gastown Rig Comprehensive guide covering: - Philosophy of Momentum - Core principles for continuous propulsion - Rig Hierarchy - Roles from Human Overseer to Polecats - Coordination Patterns - Sequential, parallel, and escalation workflows - Troubleshooting - Handling \"Ralph Wiggum States\" (degraded agents) - Metrics & Health - KPIs and monitoring procedures Essential reading for: - Human operators setting up or managing Gastown rigs - AI agents (Mayor, Polecat",
-    "url": "/gastown",
-    "category": "gastown"
-  },
-  {
-    "id": "gastown/gupp",
-    "title": "gupp",
-    "content": "GUPP: The Gastown Unified Propulsion Protocol The Industrial Constitution of a Gastown Rig Version 1.0 | Philosophy of Momentum for Multi-Agent Coordination ---  Executive Summary GUPP (Gastown Unified Propulsion Protocol) is the operational philosophy and structural framework that governs multi-agent coordination in Gastown rigs. It embodies a philosophy of momentum: systems should always be moving forward, agents should never be idle when work exists, and blockers must be resolved through systematic escalation and delegation. This document serves as the industrial constitution for Gastown operations, defining: - The Rig Hierarchy (roles and responsibilities) - The philosophy of continuous propulsion - Multi-agent coordination patterns - Troubleshooting procedures for degraded states Target Audience: Human operators, AI agents (Mayor, Polecats), and system architects implementing Gastown workflows. ---  Part I: Philosophy of Momentum  Core Principle Momentum is the default state. Idle",
-    "url": "/gastown/gupp",
-    "category": "gastown"
-  },
-  {
-    "id": "gastown/monitor",
-    "title": "monitor",
-    "content": "Rig Health Manual: Gauges and Dials Monitoring and Diagnostics for Gastown Rigs Version 1.0 | The Operator's Guide to Rig Telemetry ---  Overview A healthy Gastown rig is like a well-tuned engine: you can feel the rhythm of progress. Issues flow in, agents consume them, work gets completed, and the ledger drains. When the rig stalls or stutters, the gauges tell you why. This manual explains how to monitor your rig's health using the Beads Viewer (bv) and command-line tools. You'll learn to interpret the key metrics that indicate rig vitality: - PageRank - Task importance and unblocking priority - Critical Paths - Bottlenecks preventing progress - Cycle Detection - Logic loops causing infinite dependencies - Pulse - The rhythm indicating whether work is flowing or stalled Target Audience: Human Overseers, Mayors (AI coordinators), and system operators monitoring Gastown rigs. ---  Part I: The Beads Viewer (bv)  What is bv? The Beads Viewer is a terminal-based UI (TUI) for visualizing an",
-    "url": "/gastown/monitor",
-    "category": "gastown"
-  },
-  {
     "id": "home",
     "title": "Entropy Wiki",
     "content": "Entropy Wiki Welcome to the Entropy Wiki - a cyber-utilitarian knowledge base for AI-assisted development.  Sections - Beads - Git-backed issue tracking with dependencies and persistent memory - Gastown - Agent orchestration and multi-agent workflows - Orchestration - Task coordination and execution patterns - Plugins - Claude Code plugin development - Prompt Bank - Reusable prompt templates and patterns - Skills Bank - Skill definitions for Claude Code - Tooling MCP - Model Context Protocol server development  Getting Started Browse the sections above to explore the documentation, or use the search bar to find specific topics.",
@@ -121,7 +135,7 @@
   {
     "id": "orchestration",
     "title": "Orchestration",
-    "content": "Orchestration Multi-agent coordination patterns and handoff protocols.  What is Orchestration? Orchestration defines how multiple AI agents work together to solve complex problems. It covers task distribution, state management, and agent-to-agent communication.  Core Concepts Key orchestration patterns include: - Sequential workflows (agent chains) - Parallel execution (concurrent tasks) - Hierarchical coordination (supervisor/worker) - Event-driven handoffs  Ralph Loops (Autonomous Execution) Ralph loops enable autonomous AI development by iterating until tasks are complete: - Ralph Technique - Core concepts and economic model - Ralph Plugin - Claude Code plugin implementation with Stop Hook - Ralph Enterprise - Production-ready implementation with safety guardrails - RepoMirror Experiment - Headless loop analysis for code porting  Multi-Agent Workflows - Claude Code Multi-Agent Workflow - Coordination patterns  Key Patterns  Stop Hook Architecture Intercepts exit attempts to force ve",
+    "content": "Orchestration Orchestration is the art of coordinating AI agents to complete complex tasks autonomously. This is where you go from using AI to commanding AI.  What You'll Learn - What is Orchestration? - The fundamentals of multi-agent coordination - Frameworks - Production-grade orchestration systems (Gastown, Flywheel) - Memory - Persistent context across sessions (Beads) - Patterns - Workflow patterns like Ralph loops  Sections  Introduction Start here if you're new to orchestration. Learn what AI agents are, why coordination matters, and the key concepts.  Frameworks Multi-agent orchestration frameworks for scaling AI work: - Gastown - Industrial-strength multi-agent coordination - Flywheel - (Coming soon)  Memory Persistence and context recovery across sessions: - Beads - Issue tracking with dependencies and memory  Patterns Workflow patterns for autonomous execution: - Ralph Loop - Iterative loops until task complete  Key Concepts  Stop Hook Architecture Intercepts exit attempts ",
     "url": "/orchestration",
     "category": "orchestration"
   },
@@ -130,6 +144,104 @@
     "title": "claude-code-multi-agent-workflow",
     "content": "Beads + Claude Code: Multi-Agent Workflow Architecture > VER: 1.0.0 > STATUS: Production > LASTUPDATED: 2026-01-08  Question How should we coordinate terminal (bd CLI) and Claude Code when working through epics? One agent per epic, or multiple agents per epic? ---  Answer: Multiple Agents Per Epic (Dependency-Driven Parallelism) Beads is explicitly designed for multi-session AI agent workflows where: - Multiple Claude Code agents work in parallel on different tasks within the same epic - Terminal serves as coordination point for planning and monitoring - Dependencies define execution order, not manual sequencing - Context survives across sessions via git-backed persistence ---  Core Design Philosophy > \"Beads is a git-backed issue tracking system designed for AI agents to maintain context across conversation sessions, manage dependencies, and coordinate complex multi-session work.\" > > —   Key Principle: Persistence Over Optimization - When in doubt, track it in beads - Conversations a",
     "url": "/orchestration/claude-code-multi-agent-workflow",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/frameworks",
+    "title": "README",
+    "content": "Frameworks Multi-agent orchestration frameworks for scaling AI work to production levels.  Available Frameworks  Gastown Industrial-strength multi-agent coordination with the GUPP protocol. Massive scale, powerful capabilities, eats wallet.  Flywheel Coming soon - Docs will be added when available.  When to Use Frameworks | Scenario | Recommendation | |----------|----------------| | Simple tasks | No framework needed | | Medium complexity | Basic skill orchestration | | Large-scale projects | Gastown or similar | | Enterprise deployment | Full framework with monitoring |  Framework Characteristics Good orchestration frameworks provide: 1. Agent Registry - Track available agents and capabilities 2. Task Queue - Manage work distribution 3. State Management - Coordinate shared context 4. Error Recovery - Handle failures gracefully 5. Monitoring - Observe what's happening  Trade-offs Frameworks add power but also complexity: | Pro | Con | |-----|-----| | Handles massive scale | Learning cu",
+    "url": "/orchestration/frameworks",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/frameworks/flywheel",
+    "title": "flywheel",
+    "content": "Flywheel Documentation coming soon.  What is Flywheel? Flywheel is an orchestration framework for AI coding agents. More details will be added when documentation is available.  Placeholder This page is a placeholder. Check back later or contribute documentation if you have experience with Flywheel.  Related - Gastown - Another multi-agent orchestration framework - Frameworks Overview - All available frameworks",
+    "url": "/orchestration/frameworks/flywheel",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/frameworks/gastown",
+    "title": "gastown",
+    "content": "Gastown Documentation Multi-agent orchestration system for Claude Code with persistent work tracking.  Overview Gastown is a workspace manager that coordinates multiple AI agents working on different tasks. Instead of losing context when agents restart, Gastown persists work state in git-backed hooks, enabling reliable multi-agent workflows. This directory contains comprehensive documentation for implementing and operating Gastown rigs.  Documentation  GUPP - Gastown Unified Propulsion Protocol ⭐ The Industrial Constitution of a Gastown Rig Comprehensive guide covering: - Philosophy of Momentum - Core principles for continuous propulsion - Rig Hierarchy - Roles from Human Overseer to Polecats - Coordination Patterns - Sequential, parallel, and escalation workflows - Troubleshooting - Handling \"Ralph Wiggum States\" (degraded agents) - Metrics & Health - KPIs and monitoring procedures Essential reading for: - Human operators setting up or managing Gastown rigs - AI agents (Mayor, Polecat",
+    "url": "/orchestration/frameworks/gastown",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/frameworks/gupp",
+    "title": "gupp",
+    "content": "GUPP: The Gastown Unified Propulsion Protocol The Industrial Constitution of a Gastown Rig Version 1.0 | Philosophy of Momentum for Multi-Agent Coordination ---  Executive Summary GUPP (Gastown Unified Propulsion Protocol) is the operational philosophy and structural framework that governs multi-agent coordination in Gastown rigs. It embodies a philosophy of momentum: systems should always be moving forward, agents should never be idle when work exists, and blockers must be resolved through systematic escalation and delegation. This document serves as the industrial constitution for Gastown operations, defining: - The Rig Hierarchy (roles and responsibilities) - The philosophy of continuous propulsion - Multi-agent coordination patterns - Troubleshooting procedures for degraded states Target Audience: Human operators, AI agents (Mayor, Polecats), and system architects implementing Gastown workflows. ---  Part I: Philosophy of Momentum  Core Principle Momentum is the default state. Idle",
+    "url": "/orchestration/frameworks/gupp",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/frameworks/monitor",
+    "title": "monitor",
+    "content": "Rig Health Manual: Gauges and Dials Monitoring and Diagnostics for Gastown Rigs Version 1.0 | The Operator's Guide to Rig Telemetry ---  Overview A healthy Gastown rig is like a well-tuned engine: you can feel the rhythm of progress. Issues flow in, agents consume them, work gets completed, and the ledger drains. When the rig stalls or stutters, the gauges tell you why. This manual explains how to monitor your rig's health using the Beads Viewer (bv) and command-line tools. You'll learn to interpret the key metrics that indicate rig vitality: - PageRank - Task importance and unblocking priority - Critical Paths - Bottlenecks preventing progress - Cycle Detection - Logic loops causing infinite dependencies - Pulse - The rhythm indicating whether work is flowing or stalled Target Audience: Human Overseers, Mayors (AI coordinators), and system operators monitoring Gastown rigs. ---  Part I: The Beads Viewer (bv)  What is bv? The Beads Viewer is a terminal-based UI (TUI) for visualizing an",
+    "url": "/orchestration/frameworks/monitor",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/introduction",
+    "title": "introduction",
+    "content": "What is Orchestration? Let's start from zero. If you're reading this, you might be new to AI agents and wondering what all this \"orchestration\" stuff is about.  What is an AI Agent? An AI agent is software that: 1. Receives a goal - \"Fix the login bug\" 2. Takes actions - Reads code, runs tests, writes fixes 3. Loops until done - Keeps trying until the goal is achieved Think of it like an autonomous worker. You give it a task, and it figures out how to complete it.  Why Orchestration? One agent is powerful. Multiple agents working together? That's where magic happens. Orchestration is coordinating multiple AI agents to complete complex tasks. It's the difference between: - Single agent: \"Fix this bug\" (one task, one agent) - Orchestration: \"Build this feature\" (research → plan → implement → test → review)  Real-World Analogy Imagine a construction project: | Role | AI Equivalent | |------|---------------| | Architect | Planning agent (designs approach) | | Builder | Implementation agent",
+    "url": "/orchestration/introduction",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/memory",
+    "title": "README",
+    "content": "Memory AI agents forget everything when they restart. Memory systems solve this - they give agents persistent context across sessions.  Why Memory Matters Without memory, every new session starts from zero: - \"What was I working on?\" - \"What decisions did I make?\" - \"What's blocking me?\" With memory, agents can: - Pick up where they left off - Track multi-session projects - Coordinate with other agents  Beads: The Memory System Beads is a git-backed issue tracking system designed for AI agents. Think of it as \"GitHub Issues meets AI-native workflows.\"  Key Features - Persistent - Survives session restarts - Git-backed - History and sync built-in - Dependency-aware - Tracks blockers and dependencies - AI-optimized - Designed for agent workflows  Quick Example  Memory in Orchestration Memory enables key orchestration patterns:  Context Recovery After a session restart or compaction:  Work Distribution Agents can check what needs doing:  Progress Tracking Supervisors can monitor:  Learn M",
+    "url": "/orchestration/memory",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/memory/beads",
+    "title": "beads",
+    "content": "Beads System Manual Version: 1.0.1 Purpose: Technical reference for AI agents managing persistent memory and multi-session work  Overview Beads is a git-backed issue tracking system designed for AI agents to maintain context across conversation sessions, manage dependencies, and coordinate complex multi-session work. This manual serves as training data for understanding beads workflows and memory management.  Core Concepts What is a Bead? - A persistent work item tracked across sessions - Stored in  directory as structured data - Version-controlled via git for history and collaboration - Supports dependencies, blocking relationships, and priority When to Use Beads vs TodoWrite: - Use Beads for:   - Multi-session work that spans conversations   - Tasks with blocking dependencies   - Strategic work requiring context recovery after compaction   - Discovered work that needs tracking beyond current session - Use TodoWrite for:   - Simple single-session execution   - Immediate task breakdown",
+    "url": "/orchestration/memory/beads",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/memory/cli-reference",
+    "title": "cli-reference",
+    "content": "CLI Reference: bd Command Complete reference for the  command-line interface.  Command Structure  Global Options Available for all commands: -  - Show help for command -  - Show beads version ---  Core Commands   Initialize beads in the current project. What it does: - Creates  directory structure - Initializes config and index files - Sets up git integration - Configures hooks When to use: - First-time setup in a new repository - After cloning a repo without beads ---   Create a new issue. Options: -  - Issue title (required) -  - Issue type: , , ,  (default: ) -  - Priority: 0-4 or P0-P4 (0=critical, 4=backlog, default: 2) -  - Assign to user -  - Issue description -  - Associate with epic Examples: Parallel Creation: For efficiency when creating multiple issues, use parallel subagents. ---   List issues with optional filters. Options: -  - Filter by status: , , ,  -  - Filter by type: , , ,  -  - Filter by priority: 0-4 or P0-P4 -  - Filter by assignee -  - Show issues in epic Examp",
+    "url": "/orchestration/memory/cli-reference",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/memory/dependencies",
+    "title": "dependencies",
+    "content": "Dependency Resolution  Overview Beads uses a dependency graph to model blocking relationships between issues. Dependencies enable: - Explicit ordering constraints (\"A must complete before B\") - Automatic priority surfacing via PageRank - Blocking/unblocking cascade detection - Strategic work sequencing  Dependency Model  Terminology Dependency Relationship: Graph Representation: - Nodes: Individual issues - Edges: Dependency relationships (directed) - Direction: Edge points from dependent to dependency   -  means \"A depends on B\" (B blocks A)  Dependency Commands Add Dependency: Remove Dependency: View Dependencies:  PageRank-Based Priority  Why PageRank? Traditional priority systems (P0-P4) are static and don't account for strategic impact. PageRank dynamically calculates importance based on how many issues a given issue unblocks. Core Insight: Issues that unblock many other issues should be prioritized, even if their nominal priority is lower.  How It Works 1. Graph Construction:    ",
+    "url": "/orchestration/memory/dependencies",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/memory/lifecycle",
+    "title": "lifecycle",
+    "content": "Bead Lifecycle  State Model A bead progresses through discrete states that represent its position in the work pipeline. Understanding these states is critical for effective memory management and work coordination.  States  1. Open (Initial State) Meaning: Issue has been created but work has not started. Characteristics: - Newly created issues start here - Available for assignment - May have dependencies (blockers) - Visible in  Valid Transitions: - →  (work begins) - →  (cancelled or determined unnecessary) Commands:  2. In Progress (Active Work) Meaning: An agent or human is actively working on this issue. Characteristics: - Indicates current focus area - Should have assignee - One agent should work on one issue at a time - Visible in  Valid Transitions: - →  (dependency or external blocker discovered) - →  (work completed) - →  (work paused/reassigned) Commands:  3. Blocked (Waiting) Meaning: Work cannot proceed due to dependencies or external factors. Characteristics: - Has explicit",
+    "url": "/orchestration/memory/lifecycle",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/memory/workflows",
+    "title": "workflows",
+    "content": "Common Workflows Practical patterns for using beads effectively in different scenarios.  Daily Development Flow  Morning: Finding Work  During Work: Discovering Dependencies  End of Day: Wrapping Up ---  Feature Development Workflow  Phase 1: Planning  Phase 2: Execution  Phase 3: Completion ---  Bug Fix Workflow  Rapid Fix (Single Session)  Complex Bug (Multi-Session) ---  Refactoring Workflow  Incremental Refactor ---  Blocked Work Recovery  Scenario: External Blocker ---  Collaboration Workflow  Taking Over Work  Sync and Conflict Resolution ---  Context Recovery Workflow  After Conversation Compaction  After Long Break ---  Strategic Planning Workflow  Epic with Parallel Tracks ---  Maintenance Workflow  Weekly Cleanup  Monthly Audit ---  Anti-Patterns to Avoid  1. Too Many In-Progress Issues Bad: Good:  2. Ignoring Dependencies Bad: Good:  3. Manual Priority Override Bad: Good:  4. Creating Without Planning Bad: Good:  5. Not Using Comments Bad: Good: ---  Summary: Key Principles ",
+    "url": "/orchestration/memory/workflows",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/patterns",
+    "title": "README",
+    "content": "Patterns Workflow patterns for autonomous AI execution. These are the building blocks you combine to create powerful orchestration.  Core Patterns  Ralph Loop The iterative loop pattern where an agent works → validates → repeats until task complete.  Pattern Categories  Execution Patterns How agents complete individual tasks: - Ralph Loop - Iterative refinement until success - TDD Loop - Write test → implement → pass - Validation Loop - Implement → validate → fix  Coordination Patterns How multiple agents work together: - Sequential - Agent A → Agent B → Agent C - Parallel - Agents A, B, C work simultaneously - Supervisor - One agent delegates to workers  Recovery Patterns How agents handle failures: - Retry - Try again with same approach - Escalate - Ask for human help - Pivot - Try different approach  When to Use Which | Situation | Pattern | |-----------|---------| | Self-correcting work | Ralph Loop | | Test-driven development | TDD Loop | | Complex multi-step task | Sequential | |",
+    "url": "/orchestration/patterns",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/patterns/ralph-loop",
+    "title": "ralph-loop",
+    "content": "Ralph Loop Plugin Iterative development methodology based on continuous AI loops for self-correcting, autonomous task completion.  Overview Ralph Loop implements the \"Ralph Wiggum\" technique - a development pattern where Claude repeatedly receives the same prompt while seeing its own previous work, enabling iterative refinement until task completion. Core principle: The AI doesn't need its output fed back as input. It sees its own work in the files and git history, creating a self-referential improvement loop.  The Ralph Wiggum Technique Named after the Simpsons character, this technique embraces being \"deterministically bad in an undeterministic world\" - failures are predictable and can be systematically improved through prompt tuning.  Basic Loop Structure  How It Works 1. Same prompt, every iteration    - Claude receives identical instructions each time    - No modification between loops 2. Self-referential context    - Claude sees its previous work in files    - Reviews git history",
+    "url": "/orchestration/patterns/ralph-loop",
     "category": "orchestration"
   },
   {
@@ -161,62 +273,6 @@
     "category": "orchestration"
   },
   {
-    "id": "plugins",
-    "title": "README",
-    "content": "Plugins Claude Code plugins extend the development environment with specialized capabilities for testing, iteration, design, and workflow automation.  What are Plugins? Plugins are packaged extensions that provide: - New skills - Commands that orchestrate complex workflows - MCP servers - Integration with external tools and services - Development patterns - Proven methodologies for AI-assisted development  Installed Plugins This wiki documents the following plugins currently installed:  Playwright Browser automation for visual testing, functional validation, and layout debugging. Enables systematic frontend testing through MCP integration. Learn more →  Ralph Loop Iterative development methodology based on continuous AI loops. Implements the \"Ralph Wiggum\" technique for self-correcting, autonomous task completion. Learn more →  Frontend Design Production-grade interface creation with bold aesthetic direction. Generates distinctive, polished frontend code that avoids generic AI patterns",
-    "url": "/plugins",
-    "category": "plugins"
-  },
-  {
-    "id": "plugins/frontend-design",
-    "title": "frontend-design",
-    "content": "Frontend Design Plugin Production-grade interface creation with bold aesthetic direction that avoids generic AI patterns.  Overview The Frontend Design plugin guides creation of distinctive, memorable user interfaces with exceptional attention to aesthetic details and creative choices. It produces real working code (HTML/CSS/JS, React, Vue, etc.) that is: - Visually striking - Memorable and distinctive - Production-grade - Functional and performant - Cohesive - Clear aesthetic point-of-view - Refined - Meticulously detailed  Core Philosophy Avoid \"AI slop\" - Generic aesthetics that scream \"made by AI\": - ❌ Overused fonts (Inter, Roboto, Arial, system fonts) - ❌ Cliched colors (purple gradients on white backgrounds) - ❌ Predictable layouts and component patterns - ❌ Cookie-cutter design lacking context-specific character Embrace bold direction - Commit to a clear conceptual vision: - ✅ Distinctive font pairings - ✅ Cohesive color systems with personality - ✅ Unexpected layouts and compo",
-    "url": "/plugins/frontend-design",
-    "category": "plugins"
-  },
-  {
-    "id": "plugins/github",
-    "title": "github",
-    "content": "GitHub CLI Integration Native GitHub operations through the  command for pull requests, issues, code review, and repository management.  Overview GitHub CLI () integration enables Claude Code to interact directly with GitHub repositories through the Bash tool. This provides: - Pull request creation - Create PRs with comprehensive descriptions - Issue management - View, create, and update issues - Code review - Comment on PRs, view diffs, check status - Repository operations - Clone, fork, view details - Release management - Create releases, view tags - GitHub Actions - View workflow runs, check CI status  Installation  1. Install GitHub CLI macOS: Linux: Windows:  2. Authenticate Follow the prompts to authenticate via browser or token.  3. Verify Installation  Core Commands  Pull Requests  Create PR  View PRs  PR Comments  Issues  Create Issue  Manage Issues  Repository  Clone & Fork  Releases  Workflows  View CI Status  Integration with Git Workflow The GitHub CLI enhances the git-wor",
-    "url": "/plugins/github",
-    "category": "plugins"
-  },
-  {
-    "id": "plugins/playwright",
-    "title": "playwright",
-    "content": "Playwright Plugin Browser automation for visual testing, functional validation, and layout debugging via Model Context Protocol (MCP) integration.  Overview The Playwright plugin provides a complete browser automation toolkit through MCP, enabling: - Visual regression testing - Screenshot comparisons before/after changes - Functional validation - Verify user interactions and flows - Layout debugging - Inspect CSS, DOM structure, and rendering issues - Responsive testing - Test across different viewport sizes - Accessibility checks - Validate ARIA attributes and semantics  Installation & Setup  1. Configure MCP Server Add to  in project root:  2. Restart Claude Code The MCP server loads on startup. Restart to activate Playwright tools.  3. Verify Installation Check that Playwright tools are available: -  - Navigate to URL -  - Capture accessibility snapshot -  - Take screenshots -  - Click elements -  - Run JavaScript in page context  Available Tools  Navigation -  - Load a page -  - Go",
-    "url": "/plugins/playwright",
-    "category": "plugins"
-  },
-  {
-    "id": "plugins/ralph-loop",
-    "title": "ralph-loop",
-    "content": "Ralph Loop Plugin Iterative development methodology based on continuous AI loops for self-correcting, autonomous task completion.  Overview Ralph Loop implements the \"Ralph Wiggum\" technique - a development pattern where Claude repeatedly receives the same prompt while seeing its own previous work, enabling iterative refinement until task completion. Core principle: The AI doesn't need its output fed back as input. It sees its own work in the files and git history, creating a self-referential improvement loop.  The Ralph Wiggum Technique Named after the Simpsons character, this technique embraces being \"deterministically bad in an undeterministic world\" - failures are predictable and can be systematically improved through prompt tuning.  Basic Loop Structure  How It Works 1. Same prompt, every iteration    - Claude receives identical instructions each time    - No modification between loops 2. Self-referential context    - Claude sees its previous work in files    - Reviews git history",
-    "url": "/plugins/ralph-loop",
-    "category": "plugins"
-  },
-  {
-    "id": "prompt-bank",
-    "title": "README",
-    "content": "Prompt Bank High-performance, battle-tested prompts for AI agents and LLMs.  What is Prompt Bank? Prompt Bank is a curated collection of effective prompts organized by use case. Each prompt is optimized for clarity, specificity, and reliable output.  Categories Prompts are categorized by: - Task type (generation, analysis, refactoring, etc.) - Domain (code, documentation, data processing) - Complexity level  Usage Each prompt includes: - Clear objective statement - Input format requirements - Expected output structure - Example usage Browse the collection to find prompts that fit your workflow, or use them as templates for custom variations.",
-    "url": "/prompt-bank",
-    "category": "prompt-bank"
-  },
-  {
-    "id": "prompt-bank/the-refiner",
-    "title": "the-refiner",
-    "content": "THEREFINER || VER: 1.0.2 > [!NOTE] > Golden prompt for turning rough intent into high-density Gastown-style instructions.  Prompt > [!TIP] > Pair with a domain preface to enforce tone, constraints, and stack context. > [!CAUTION] > Do not leak hidden chain-of-thought. Summaries only.",
-    "url": "/prompt-bank/the-refiner",
-    "category": "prompt-bank"
-  },
-  {
-    "id": "skills-bank",
-    "title": "Skills Bank",
-    "content": "Skills Bank A collection of reusable AI agent capabilities and skill definitions.  What is Skills Bank? Skills Bank provides modular, plug-and-play capabilities for AI agents. Each skill is a self-contained unit that can be deployed, tested, and reused across different contexts.  Documentation  Claude Code Skills - Skills Overview - Creating and managing Agent Skills in Claude Code - Best Practices - Writing effective Skills that Claude can discover and use - Template Skill - Starter template for creating new skills  Key Concepts  What is a Skill? A Skill is a markdown file that teaches Claude how to do something specific. Skills are model-invoked - Claude automatically applies relevant Skills when your request matches their description.  Where Skills Live | Location | Path | Applies to | |----------|------|------------| | Personal |  | You, across all projects | | Project |  | Anyone working in this repository | | Plugin | Bundled with plugins | Anyone with the plugin installed |  Ski",
-    "url": "/skills-bank",
-    "category": "skills-bank"
-  },
-  {
     "id": "skills-bank/best-practices",
     "title": "Skill Best Practices",
     "content": "Skill Authoring Best Practices Learn how to write effective Skills that Claude can discover and use successfully.  Core Principles  Concise is Key The context window is a public good. Your Skill shares the context window with: - The system prompt - Conversation history - Other Skills' metadata - Your actual request Default assumption: Claude is already very smart. Only add context Claude doesn't already have. Challenge each piece of information: - \"Does Claude really need this explanation?\" - \"Can I assume Claude knows this?\" - \"Does this paragraph justify its token cost?\" Good Example (50 tokens): python import pdfplumber with pdfplumber.open(\"file.pdf\") as pdf:     text = pdf.pages[0].extracttext() Bad Example (150 tokens): The concise version assumes Claude knows what PDFs are and how libraries work.  Set Appropriate Degrees of Freedom Match specificity to the task's fragility and variability. High freedom (text-based instructions): - Multiple approaches are valid - Decisions depend",
@@ -231,31 +287,10 @@
     "category": "skills-bank"
   },
   {
-    "id": "skills-bank/template-skill",
-    "title": "template-skill",
-    "content": "SKILLTEMPLATE || VER: 1.0.2 > [!NOTE] > Use this template to define a skill with maximum operational clarity.  Metadata - Name: - Owner: - Domain: - Version: - Status: draft | active | deprecated - Last Updated:  Inputs - Required: - Optional: - Constraints:  Outputs - Primary: - Secondary: - Quality Gates:  Required Tools - Local: - External: - MCP:  Logic Flow 1.  2.  3.   Edge Cases -   Verification -  > [!TIP] > Keep logic flow executable. If a step can't be performed, delete it. > [!CAUTION] > Avoid cross-skill dependencies unless they are version-pinned.",
-    "url": "/skills-bank/template-skill",
-    "category": "skills-bank"
-  },
-  {
-    "id": "tooling-mcp",
-    "title": "Tooling and MCP",
-    "content": "Tooling and MCP MCP server configurations and custom tool definitions for AI agents.  What is MCP? Model Context Protocol (MCP) provides a standardized way to connect AI agents to external tools, data sources, and services. It's an open source standard for AI-tool integrations.  Documentation  Claude Code MCP - MCP in Claude Code - Connecting Claude Code to tools via MCP - MCP Standard - Protocol reference and standards  What You Can Do with MCP With MCP servers connected, you can: - Issue Trackers: Implement features from JIRA, Linear, or GitHub Issues - Monitoring: Analyze data from Sentry, Statsig, or custom dashboards - Databases: Query PostgreSQL, MySQL, or other databases directly - Design Tools: Integrate designs from Figma or other design tools - Communication: Access Slack messages, Gmail drafts, and more - Automation: Chain multiple tools for complex workflows  Transport Types | Type | Use Case | Example | |------|----------|---------| | HTTP | Remote cloud services | Notion,",
-    "url": "/tooling-mcp",
-    "category": "tooling-mcp"
-  },
-  {
     "id": "tooling-mcp/claude-mcp",
     "title": "MCP in Claude Code",
     "content": "Connect Claude Code to Tools via MCP Claude Code can connect to hundreds of external tools and data sources through the Model Context Protocol (MCP), an open source standard for AI-tool integrations.  What You Can Do with MCP With MCP servers connected, you can ask Claude Code to: - Implement features from issue trackers: \"Add the feature described in JIRA issue ENG-4521 and create a PR on GitHub.\" - Analyze monitoring data: \"Check Sentry and Statsig to check the usage of the feature described in ENG-4521.\" - Query databases: \"Find emails of 10 random users who used feature ENG-4521, based on our PostgreSQL database.\" - Integrate designs: \"Update our standard email template based on the new Figma designs that were posted in Slack\" - Automate workflows: \"Create Gmail drafts inviting these 10 users to a feedback session about the new feature.\"  Installing MCP Servers  Option 1: Remote HTTP Server (Recommended) HTTP servers are the recommended option for connecting to remote MCP servers. ",
     "url": "/tooling-mcp/claude-mcp",
-    "category": "tooling-mcp"
-  },
-  {
-    "id": "tooling-mcp/mcp-standard",
-    "title": "mcp-standard",
-    "content": "MCPSTANDARD || VER: 1.0.2 > [!NOTE] > Purpose: Document and share MCP server configurations between two operators with zero ambiguity.  Required Sections - Server Identity: Name, owner, repo, contact. - Runtime: Node/Python version, OS target, start command. - Capabilities: Tools, resources, prompts exposed. - Auth: Tokens, scopes, rotation policy. - Network: Ports, endpoints, CORS rules. - Security: Sandboxing, file access, secrets storage. - Change Log: Version, date, breaking changes.  Share Protocol 1. Export server config and tool schema. 2. Redact secrets; replace with placeholders. 3. Provide a verified start command and health check. 4. Sync via repo PR or direct file drop in . > [!TIP] > Include one minimal usage example per tool. Keep outputs deterministic. > [!CAUTION] > Never paste real keys. Use  placeholders and describe where they live.",
-    "url": "/tooling-mcp/mcp-standard",
     "category": "tooling-mcp"
   }
 ]
