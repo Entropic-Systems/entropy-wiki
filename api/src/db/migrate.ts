@@ -35,8 +35,23 @@ async function migrate() {
 
       console.log(`Applying ${migrationName}...`);
       const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8');
-      await query(sql);
-      console.log(`Applied ${migrationName}`);
+
+      try {
+        await query(sql);
+        console.log(`Applied ${migrationName}`);
+      } catch (err: any) {
+        // Skip optional migrations that require unavailable extensions (e.g., pgvector)
+        if (err.code === '0A000' && err.message?.includes('extension') && migrationName.includes('embeddings')) {
+          console.log(`Skipping ${migrationName} (pgvector extension not available - embeddings disabled)`);
+          // Record as skipped so we don't retry every time
+          await query(
+            "INSERT INTO _migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING",
+            [`${migrationName}_skipped`]
+          ).catch(() => {}); // Ignore if this fails
+          continue;
+        }
+        throw err;
+      }
     }
 
     console.log('All migrations complete!');
