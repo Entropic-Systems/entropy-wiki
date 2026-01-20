@@ -5,10 +5,20 @@ import { storeEmbedding, updatePageEmbedding } from './embeddings.js';
 import { RoutingResult } from './router.js';
 import { ExtractedContent, Page, PageWithContent } from '../types.js';
 
-// Initialize Anthropic client
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+// Lazy-initialized Anthropic client (only created when needed)
+let anthropic: Anthropic | null = null;
+
+function getAnthropicClient(): Anthropic {
+  if (!anthropic) {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error('ANTHROPIC_API_KEY environment variable is not set');
+    }
+    anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+  }
+  return anthropic;
+}
 
 // Model configuration
 const INTEGRATION_MODEL = 'claude-3-5-haiku-latest';
@@ -308,7 +318,7 @@ ${content.content || 'No content available'}
 Return ONLY the Markdown content, no explanations or meta-commentary.`;
 
   try {
-    const message = await anthropic.messages.create({
+    const message = await getAnthropicClient().messages.create({
       model: INTEGRATION_MODEL,
       max_tokens: 4096,
       messages: [
@@ -376,7 +386,7 @@ ${newContent.content || 'No content'}
 Return ONLY the complete merged Markdown content of the page.`;
 
   try {
-    const message = await anthropic.messages.create({
+    const message = await getAnthropicClient().messages.create({
       model: INTEGRATION_MODEL,
       max_tokens: 8192,
       messages: [

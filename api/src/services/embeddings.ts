@@ -2,10 +2,20 @@ import OpenAI from 'openai';
 import { query, getClient } from '../db/client.js';
 import { PageEmbedding, SimilaritySearchResult } from '../types.js';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy-initialized OpenAI client (only created when needed)
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 // Model configuration
 const EMBEDDING_MODEL = 'text-embedding-3-small';
@@ -19,16 +29,14 @@ const MAX_CHUNK_CHARS = 30000;
  * Uses OpenAI's text-embedding-3-small model (1536 dimensions)
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY environment variable is not set');
-  }
+  const client = getOpenAIClient();
 
   // Truncate text if too long
   const truncatedText = text.length > MAX_CHUNK_CHARS
     ? text.slice(0, MAX_CHUNK_CHARS)
     : text;
 
-  const response = await openai.embeddings.create({
+  const response = await client.embeddings.create({
     model: EMBEDDING_MODEL,
     input: truncatedText,
   });
