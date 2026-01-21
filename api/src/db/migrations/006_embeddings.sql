@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS page_embeddings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   page_id UUID NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
   revision_id UUID NOT NULL REFERENCES page_revisions(id) ON DELETE CASCADE,
-  -- OpenAI text-embedding-3-small produces 1536-dimensional vectors
-  embedding vector(1536) NOT NULL,
+  -- Local model (all-MiniLM-L6-v2) produces 384-dimensional vectors
+  embedding vector(384) NOT NULL,
   -- Metadata for the embedding
   chunk_index INTEGER DEFAULT 0, -- For pages split into chunks
   chunk_text TEXT, -- The text that was embedded

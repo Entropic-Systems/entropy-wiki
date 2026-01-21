@@ -1,47 +1,24 @@
-import OpenAI from 'openai';
 import { query, getClient } from '../db/client.js';
 import { PageEmbedding, SimilaritySearchResult } from '../types.js';
+import { generateLocalEmbedding, LOCAL_EMBEDDING_DIMENSIONS } from './local-embeddings.js';
 
-// Lazy-initialized OpenAI client (only created when needed)
-let openai: OpenAI | null = null;
+// Model configuration - using local all-MiniLM-L6-v2
+const EMBEDDING_DIMENSIONS = LOCAL_EMBEDDING_DIMENSIONS;
 
-function getOpenAIClient(): OpenAI {
-  if (!openai) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY environment variable is not set');
-    }
-    openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-  return openai;
-}
-
-// Model configuration
-const EMBEDDING_MODEL = 'text-embedding-3-small';
-const EMBEDDING_DIMENSIONS = 1536;
-
-// Maximum tokens for embedding model (8191 tokens ~= 32000 chars)
+// Maximum chars for embedding input
 const MAX_CHUNK_CHARS = 30000;
 
 /**
  * Generate an embedding vector for the given text
- * Uses OpenAI's text-embedding-3-small model (1536 dimensions)
+ * Uses local all-MiniLM-L6-v2 model (384 dimensions)
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const client = getOpenAIClient();
-
   // Truncate text if too long
   const truncatedText = text.length > MAX_CHUNK_CHARS
     ? text.slice(0, MAX_CHUNK_CHARS)
     : text;
 
-  const response = await client.embeddings.create({
-    model: EMBEDDING_MODEL,
-    input: truncatedText,
-  });
-
-  return response.data[0].embedding;
+  return generateLocalEmbedding(truncatedText);
 }
 
 /**
@@ -246,4 +223,4 @@ export async function hasCurrentEmbedding(pageId: string): Promise<boolean> {
   return result.rows[0].has_embedding;
 }
 
-export { EMBEDDING_MODEL, EMBEDDING_DIMENSIONS };
+export { EMBEDDING_DIMENSIONS };

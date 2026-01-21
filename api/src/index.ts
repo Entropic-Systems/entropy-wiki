@@ -133,14 +133,18 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-app.listen(PORT, () => {
-  console.log(`Entropy Wiki API running on port ${PORT}`);
-  console.log(`CORS enabled for: ${corsOrigins.join(', ')}`);
+// Only start the server when not in test mode
+// (supertest handles server creation for tests)
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Entropy Wiki API running on port ${PORT}`);
+    console.log(`CORS enabled for: ${corsOrigins.join(', ')}`);
 
-  // Start background job processor
-  if (process.env.ENABLE_INGEST_PROCESSOR !== 'false') {
-    startProcessor();
-  }
-});
+    // Start background job processor
+    if (process.env.ENABLE_INGEST_PROCESSOR !== 'false') {
+      startProcessor();
+    }
+  });
+}
 
 export { app };

@@ -138,12 +138,13 @@ async function processItem(item: IngestItem, job: IngestJob): Promise<void> {
     const extracted = await extractContent(source, contentType);
 
     // Save extraction results
+    // Note: topics must be cast to TEXT[] for PostgreSQL type inference
     await query(`
       UPDATE ingest_items
       SET extracted_title = $1,
           extracted_summary = $2,
           extracted_content = $3,
-          extracted_topics = $4,
+          extracted_topics = $4::TEXT[],
           extracted_entities = $5,
           extraction_confidence = $6
       WHERE id = $7
@@ -151,7 +152,7 @@ async function processItem(item: IngestItem, job: IngestJob): Promise<void> {
       extracted.title,
       extracted.summary,
       extracted.content,
-      extracted.topics,
+      extracted.topics || [],
       extracted.entities ? JSON.stringify(extracted.entities) : null,
       extracted.confidence,
       item.id,
@@ -310,10 +311,10 @@ async function updateJobStatus(jobId: string): Promise<void> {
 
   await query(`
     UPDATE ingest_jobs
-    SET status = $1,
+    SET status = $1::VARCHAR,
         processed_items = $2,
         failed_items = $3,
-        completed_at = CASE WHEN $1 IN ('completed', 'failed') THEN NOW() ELSE completed_at END
+        completed_at = CASE WHEN $1::VARCHAR IN ('completed', 'failed') THEN NOW() ELSE completed_at END
     WHERE id = $4
   `, [status, completed + failed, failed, jobId]);
 }

@@ -1,27 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
-import Anthropic from '@anthropic-ai/sdk';
 import { query, getClient } from '../db/client.js';
 import { storeEmbedding, updatePageEmbedding } from './embeddings.js';
 import { RoutingResult } from './router.js';
 import { ExtractedContent, Page, PageWithContent } from '../types.js';
-
-// Lazy-initialized Anthropic client (only created when needed)
-let anthropic: Anthropic | null = null;
-
-function getAnthropicClient(): Anthropic {
-  if (!anthropic) {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY environment variable is not set');
-    }
-    anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-  }
-  return anthropic;
-}
-
-// Model configuration
-const INTEGRATION_MODEL = 'claude-3-5-haiku-latest';
+import { callClaude } from './claude-headless.js';
 
 /**
  * Result of content integration
@@ -54,10 +36,6 @@ export async function createNewPage(
   routing: RoutingResult,
   options: IntegrationOptions
 ): Promise<IntegrationResult> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY environment variable is not set');
-  }
-
   const client = await getClient();
 
   try {
@@ -169,10 +147,6 @@ export async function enhanceExistingPage(
       title: null,
       error: 'No target page specified for enhancement',
     };
-  }
-
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY environment variable is not set');
   }
 
   const client = await getClient();
@@ -318,20 +292,7 @@ ${content.content || 'No content available'}
 Return ONLY the Markdown content, no explanations or meta-commentary.`;
 
   try {
-    const message = await getAnthropicClient().messages.create({
-      model: INTEGRATION_MODEL,
-      max_tokens: 4096,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    });
-
-    const responseText = message.content[0].type === 'text'
-      ? message.content[0].text
-      : '';
+    const responseText = await callClaude(prompt, { extractJson: false });
 
     return responseText.trim() + attribution;
   } catch (error: any) {
@@ -386,20 +347,7 @@ ${newContent.content || 'No content'}
 Return ONLY the complete merged Markdown content of the page.`;
 
   try {
-    const message = await getAnthropicClient().messages.create({
-      model: INTEGRATION_MODEL,
-      max_tokens: 8192,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    });
-
-    const responseText = message.content[0].type === 'text'
-      ? message.content[0].text
-      : '';
+    const responseText = await callClaude(prompt, { extractJson: false });
 
     return responseText.trim();
   } catch (error: any) {
