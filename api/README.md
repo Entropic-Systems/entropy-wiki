@@ -182,6 +182,38 @@ CREATE TABLE page_revisions (
 );
 ```
 
+## Ingest System
+
+The API includes an intelligent content ingest system that uses Claude to extract, classify, and integrate content into your wiki.
+
+**Features:**
+- Submit content via URL, raw text, or file
+- Automatic content extraction and summarization
+- Topic and entity detection
+- Smart routing to existing wiki pages
+- Batch processing with job tracking
+
+**Getting Started:** See [docs/INGEST_SETUP.md](docs/INGEST_SETUP.md) for complete setup instructions.
+
+**Quick test** (after setup):
+
+```bash
+curl -X POST http://localhost:3001/admin/ingest \
+  -H "X-Admin-Password: your-password" \
+  -H "Content-Type: application/json" \
+  -d '{"items":[{"source_type":"text","content":"# Test\n\nHello world."}]}'
+```
+
+### Ingest Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/admin/ingest` | Submit items for ingestion |
+| GET | `/admin/ingest/jobs` | List all ingest jobs |
+| GET | `/admin/ingest/jobs/:id` | Get job details with items |
+| POST | `/admin/ingest/jobs/:id/retry` | Retry failed items |
+| DELETE | `/admin/ingest/jobs/:id` | Delete a job |
+
 ## Roadmap
 
 ### Near-term
