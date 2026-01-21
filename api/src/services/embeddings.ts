@@ -55,34 +55,41 @@ export async function storeEmbedding(
 /**
  * Find pages similar to the given content using vector similarity
  * Uses cosine distance for similarity scoring
+ * Returns empty array if embeddings are unavailable (graceful degradation)
  */
 export async function findSimilarPages(
   content: string,
   limit: number = 10,
   threshold: number = 0.3
 ): Promise<SimilaritySearchResult[]> {
-  // Generate embedding for the query
-  const queryEmbedding = await generateEmbedding(content);
-  const embeddingStr = `[${queryEmbedding.join(',')}]`;
+  try {
+    // Generate embedding for the query
+    const queryEmbedding = await generateEmbedding(content);
+    const embeddingStr = `[${queryEmbedding.join(',')}]`;
 
-  // Find similar pages using cosine distance
-  // Lower distance = more similar, so we convert to similarity (1 - distance)
-  const result = await query<SimilaritySearchResult>(`
-    SELECT
-      pe.page_id,
-      p.title as page_title,
-      p.slug as page_slug,
-      pe.chunk_text,
-      1 - (pe.embedding <=> $1::vector) as similarity
-    FROM page_embeddings pe
-    JOIN pages p ON pe.page_id = p.id
-    WHERE p.status = 'published'
-      AND 1 - (pe.embedding <=> $1::vector) >= $2
-    ORDER BY pe.embedding <=> $1::vector
-    LIMIT $3
-  `, [embeddingStr, threshold, limit]);
+    // Find similar pages using cosine distance
+    // Lower distance = more similar, so we convert to similarity (1 - distance)
+    const result = await query<SimilaritySearchResult>(`
+      SELECT
+        pe.page_id,
+        p.title as page_title,
+        p.slug as page_slug,
+        pe.chunk_text,
+        1 - (pe.embedding <=> $1::vector) as similarity
+      FROM page_embeddings pe
+      JOIN pages p ON pe.page_id = p.id
+      WHERE p.status = 'published'
+        AND 1 - (pe.embedding <=> $1::vector) >= $2
+      ORDER BY pe.embedding <=> $1::vector
+      LIMIT $3
+    `, [embeddingStr, threshold, limit]);
 
-  return result.rows;
+    return result.rows;
+  } catch (err: any) {
+    // Graceful degradation: return empty if embeddings unavailable
+    console.warn('Similarity search unavailable:', err.message);
+    return [];
+  }
 }
 
 /**
