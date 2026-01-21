@@ -4,6 +4,11 @@ import { app } from '../src/index.js';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'test-password';
 const TEST_TIMEOUT = 60000; // 60s for Claude CLI
+const IS_CI = process.env.CI === 'true';
+
+// Skip slow pipeline tests in CI (require Claude CLI + take 60-120s each)
+const itSkipCI = IS_CI ? it.skip : it;
+const describeSkipCI = IS_CI ? describe.skip : describe;
 
 /**
  * E2E Tests for Claude Headless Ingest Flow
@@ -93,7 +98,7 @@ describe('Ingest E2E (Claude Headless)', () => {
     });
   });
 
-  describe('Claude Headless Service', () => {
+  describeSkipCI('Claude Headless Service', () => {
     it(
       'should execute Claude CLI and return response',
       async () => {
@@ -164,7 +169,7 @@ describe('Ingest E2E (Claude Headless)', () => {
       }
     );
 
-    it(
+    itSkipCI(
       'should ingest text content and process through pipeline',
       async () => {
         // 1. Submit ingest job
@@ -203,7 +208,7 @@ describe('Ingest E2E (Claude Headless)', () => {
       TEST_TIMEOUT
     );
 
-    it(
+    itSkipCI(
       'should handle multiple items in batch',
       async () => {
         const timestamp = Date.now();
