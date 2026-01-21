@@ -1,24 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { findPagesForRouting, findSimilarPages } from './embeddings.js';
 import { RoutingDecision, RoutingDecisionType, ExtractedContent, SimilaritySearchResult } from '../types.js';
-
-// Lazy-initialized Anthropic client (only created when needed)
-let anthropic: Anthropic | null = null;
-
-function getAnthropicClient(): Anthropic {
-  if (!anthropic) {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY environment variable is not set');
-    }
-    anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-  }
-  return anthropic;
-}
-
-// Model configuration
-const ROUTING_MODEL = 'claude-3-5-haiku-latest';
+import { callClaude } from './claude-headless.js';
 
 /**
  * Routing decision with additional metadata for the decision
@@ -65,10 +47,6 @@ export async function makeRoutingDecision(
   extractedContent: ExtractedContent,
   sourceUrl?: string
 ): Promise<RoutingResult> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY environment variable is not set');
-  }
-
   // Stage 1: Find similar pages using embeddings
   const searchContent = [
     extractedContent.title || '',
@@ -88,21 +66,7 @@ export async function makeRoutingDecision(
   const prompt = buildRoutingPrompt(extractedContent, similarPages, sourceUrl);
 
   try {
-    const message = await getAnthropicClient().messages.create({
-      model: ROUTING_MODEL,
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    });
-
-    // Parse the AI response
-    const responseText = message.content[0].type === 'text'
-      ? message.content[0].text
-      : '';
+    const responseText = await callClaude(prompt, { extractJson: true });
 
     return parseRoutingResponse(responseText, similarPages);
   } catch (error: any) {
