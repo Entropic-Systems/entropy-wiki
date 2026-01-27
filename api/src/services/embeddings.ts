@@ -13,6 +13,16 @@ const MAX_CHUNK_CHARS = 30000;
  * Uses local all-MiniLM-L6-v2 model (384 dimensions)
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
+  // Validate input
+  if (!text || typeof text !== 'string') {
+    throw new Error('Text input is required and must be a string');
+  }
+
+  // Ensure text is not just whitespace
+  if (text.trim().length === 0) {
+    throw new Error('Text input cannot be empty or only whitespace');
+  }
+
   // Truncate text if too long
   const truncatedText = text.length > MAX_CHUNK_CHARS
     ? text.slice(0, MAX_CHUNK_CHARS)
@@ -37,12 +47,15 @@ export async function storeEmbedding(
   // Format embedding as pgvector format: [0.1, 0.2, ...]
   const embeddingStr = `[${embedding.join(',')}]`;
 
-  // Store in database
+  // Store in database with proper conflict resolution
   const result = await query<PageEmbedding>(`
     INSERT INTO page_embeddings (page_id, revision_id, embedding, chunk_index, chunk_text)
     VALUES ($1, $2, $3::vector, $4, $5)
     ON CONFLICT (page_id, revision_id, chunk_index)
-      DO UPDATE SET embedding = $3::vector, chunk_text = $5, created_at = NOW()
+      DO UPDATE SET
+        embedding = EXCLUDED.embedding,
+        chunk_text = EXCLUDED.chunk_text,
+        created_at = NOW()
     RETURNING id, page_id, revision_id, chunk_index, chunk_text, created_at
   `, [pageId, revisionId, embeddingStr, chunkIndex, content]);
 
@@ -164,18 +177,35 @@ export async function backfillEmbeddings(): Promise<{
 
   console.log(`Backfilling embeddings for ${pagesResult.rows.length} pages`);
 
-  for (const page of pagesResult.rows) {
-    try {
-      await storeEmbedding(page.page_id, page.revision_id, page.content_md);
-      stats.processed++;
-      console.log(`Generated embedding for page ${page.page_id}`);
-    } catch (error: any) {
-      stats.failed++;
-      stats.errors.push({
-        pageId: page.page_id,
-        error: error.message || 'Unknown error',
-      });
-      console.error(`Failed to generate embedding for page ${page.page_id}:`, error.message);
+  // Process pages in batches to improve performance while avoiding overload
+  const BATCH_SIZE = 5; // Process 5 pages concurrently
+  const pages = pagesResult.rows;
+
+  for (let i = 0; i < pages.length; i += BATCH_SIZE) {
+    const batch = pages.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map(async (page) => {
+        await storeEmbedding(page.page_id, page.revision_id, page.content_md);
+        return page.page_id;
+      })
+    );
+
+    // Process results
+    for (let j = 0; j < results.length; j++) {
+      const result = results[j];
+      const page = batch[j];
+
+      if (result.status === 'fulfilled') {
+        stats.processed++;
+        console.log(`Generated embedding for page ${page.page_id}`);
+      } else {
+        stats.failed++;
+        stats.errors.push({
+          pageId: page.page_id,
+          error: result.reason?.message || 'Unknown error',
+        });
+        console.error(`Failed to generate embedding for page ${page.page_id}:`, result.reason?.message);
+      }
     }
   }
 

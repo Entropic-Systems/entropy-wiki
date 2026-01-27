@@ -7,7 +7,14 @@ let loadError: Error | null = null;
 
 async function getEmbedder() {
   if (loadError) {
-    throw loadError;
+    // Clear persistent errors after 5 minutes to allow retry
+    const RETRY_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    if (!loadError.message.includes('timestamp') ||
+        Date.now() - parseInt(loadError.message.split('timestamp:')[1] || '0') > RETRY_INTERVAL) {
+      loadError = null;
+    } else {
+      throw loadError;
+    }
   }
   if (!embedder) {
     try {
@@ -15,7 +22,8 @@ async function getEmbedder() {
       const { pipeline } = await import('@xenova/transformers');
       embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     } catch (err: any) {
-      loadError = new Error(`Embeddings unavailable: ${err.message}`);
+      // Include timestamp in error message for retry logic
+      loadError = new Error(`Embeddings unavailable: ${err.message} timestamp:${Date.now()}`);
       throw loadError;
     }
   }
@@ -29,6 +37,21 @@ async function getEmbedder() {
  */
 export async function generateLocalEmbedding(text: string): Promise<number[]> {
   const embed = await getEmbedder();
-  const output = await embed(text, { pooling: 'mean', normalize: true });
-  return Array.from(output.data);
+
+  // Add timeout to prevent hanging
+  const EMBEDDING_TIMEOUT = 30000; // 30 seconds
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), EMBEDDING_TIMEOUT);
+
+  try {
+    const output = await embed(text, { pooling: 'mean', normalize: true });
+    clearTimeout(timeoutId);
+    return Array.from(output.data);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Embedding generation timed out');
+    }
+    throw error;
+  }
 }

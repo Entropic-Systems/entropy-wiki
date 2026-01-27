@@ -214,8 +214,10 @@ export class GitHubExtractor implements ContentExtractor {
   }
 
   private async extractIssue(owner: string, repo: string, number: number, isPR: boolean): Promise<ExtractedContent> {
-    const endpoint = isPR ? octokit.pulls.get : octokit.issues.get;
-    const response = await endpoint({ owner, repo, pull_number: number, issue_number: number });
+    // Use the appropriate endpoint and parameter name based on type
+    const response = isPR
+      ? await octokit.pulls.get({ owner, repo, pull_number: number })
+      : await octokit.issues.get({ owner, repo, issue_number: number });
     const item = response.data as any;
 
     const title = item.title;

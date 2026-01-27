@@ -8,9 +8,42 @@ import { IngestJob, IngestItem, SourceType, ContentType } from '../types.js';
 const POLL_INTERVAL_MS = 5000; // 5 seconds
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [5000, 30000, 120000]; // 5s, 30s, 2min
+const BATCH_SIZE = 3; // Process up to 3 items concurrently
 
-// Processing state
-let isProcessing = false;
+// Helper functions for safe metadata access
+function getRetryCount(metadata: unknown): number {
+  if (typeof metadata === 'object' && metadata !== null) {
+    const obj = metadata as Record<string, unknown>;
+    const retryCount = obj.retry_count;
+    return typeof retryCount === 'number' ? retryCount : 0;
+  }
+  return 0;
+}
+
+function getContentType(metadata: unknown): ContentType | undefined {
+  if (typeof metadata === 'object' && metadata !== null) {
+    const obj = metadata as Record<string, unknown>;
+    const contentType = obj.content_type;
+    // Validate that it's a valid ContentType
+    if (typeof contentType === 'string' &&
+        ['article', 'github_repo', 'github_issue', 'twitter', 'raw_text'].includes(contentType)) {
+      return contentType as ContentType;
+    }
+  }
+  return undefined;
+}
+
+function isReviewMode(metadata: unknown): boolean {
+  if (typeof metadata === 'object' && metadata !== null) {
+    const obj = metadata as Record<string, unknown>;
+    const reviewMode = obj.review_mode;
+    return reviewMode === 'true' || reviewMode === true;
+  }
+  return false;
+}
+
+// Processing state - use atomic operations to prevent race conditions
+let processingPromise: Promise<void> | null = null;
 let processingInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
@@ -42,22 +75,38 @@ export function stopProcessor(): void {
 
 /**
  * Poll for pending jobs and process them
+ * Uses promise-based locking to prevent race conditions
  */
 async function pollForJobs(): Promise<void> {
-  if (isProcessing) {
-    return; // Skip if already processing
+  // If already processing, wait for completion or return early
+  if (processingPromise) {
+    return;
   }
 
-  try {
-    isProcessing = true;
+  processingPromise = processPendingJobs();
 
-    // Find pending jobs
+  try {
+    await processingPromise;
+  } finally {
+    processingPromise = null;
+  }
+}
+
+/**
+ * Internal function to process pending jobs
+ */
+async function processPendingJobs(): Promise<void> {
+  try {
+    // Find pending jobs that have items ready to process
     const jobsResult = await query<IngestJob>(`
-      SELECT id, status, mode, total_items, processed_items, failed_items,
-             created_at, started_at, completed_at, error_message, metadata
-      FROM ingest_jobs
-      WHERE status = 'pending'
-      ORDER BY created_at ASC
+      SELECT DISTINCT j.id, j.status, j.mode, j.total_items, j.processed_items, j.failed_items,
+             j.created_at, j.started_at, j.completed_at, j.error_message, j.metadata
+      FROM ingest_jobs j
+      JOIN ingest_items i ON j.id = i.job_id
+      WHERE j.status = 'pending'
+        AND i.status = 'pending'
+        AND (i.scheduled_retry_at IS NULL OR i.scheduled_retry_at <= NOW())
+      ORDER BY j.created_at ASC
       LIMIT 1
     `);
 
@@ -69,8 +118,6 @@ async function pollForJobs(): Promise<void> {
     await processJob(job);
   } catch (error) {
     console.error('Error polling for jobs:', error);
-  } finally {
-    isProcessing = false;
   }
 }
 
@@ -80,28 +127,37 @@ async function pollForJobs(): Promise<void> {
 async function processJob(job: IngestJob): Promise<void> {
   console.log(`Processing job ${job.id}...`);
 
+  // Mark job as processing using a separate client (released immediately)
   const client = await getClient();
-
   try {
-    // Mark job as processing
     await client.query(`
       UPDATE ingest_jobs
       SET status = 'processing', started_at = NOW()
       WHERE id = $1
     `, [job.id]);
+  } finally {
     client.release();
+  }
 
-    // Get all pending items for this job
+  try {
+    // Get all pending items for this job that are ready to process
     const itemsResult = await query<IngestItem>(`
       SELECT *
       FROM ingest_items
-      WHERE job_id = $1 AND status = 'pending'
+      WHERE job_id = $1
+        AND status = 'pending'
+        AND (scheduled_retry_at IS NULL OR scheduled_retry_at <= NOW())
       ORDER BY created_at ASC
     `, [job.id]);
 
-    // Process each item
-    for (const item of itemsResult.rows) {
-      await processItem(item, job);
+    // Process items in parallel (but with limited concurrency to avoid overwhelming the system)
+    const items = itemsResult.rows;
+
+    for (let i = 0; i < items.length; i += BATCH_SIZE) {
+      const batch = items.slice(i, i + BATCH_SIZE);
+      await Promise.allSettled(
+        batch.map(item => processItem(item, job))
+      );
     }
 
     // Check if job is complete
@@ -126,14 +182,14 @@ async function processJob(job: IngestJob): Promise<void> {
 async function processItem(item: IngestItem, job: IngestJob): Promise<void> {
   console.log(`Processing item ${item.id} (${item.source_type})...`);
 
-  const retryCount = (item.metadata as Record<string, number>)?.retry_count || 0;
+  const retryCount = getRetryCount(item.metadata);
 
   try {
     // Stage 1: Extraction
     await updateItemStatus(item.id, 'extracting');
 
     const source = item.source_url || item.source_content || '';
-    const contentType = (item.metadata as Record<string, ContentType>)?.content_type;
+    const contentType = getContentType(item.metadata);
 
     const extracted = await extractContent(source, contentType);
 
@@ -187,8 +243,7 @@ async function processItem(item: IngestItem, job: IngestJob): Promise<void> {
     ]);
 
     // Check if review mode - pause for approval
-    const jobMetadata = job.metadata as Record<string, string>;
-    if (jobMetadata?.review_mode === 'true') {
+    if (isReviewMode(job.metadata)) {
       // Leave in routing status for manual review
       console.log(`Item ${item.id} awaiting review`);
       return;
@@ -240,18 +295,15 @@ async function processItem(item: IngestItem, job: IngestJob): Promise<void> {
         UPDATE ingest_items
         SET status = 'pending',
             error_message = $1,
-            metadata = metadata || $2::jsonb
+            metadata = metadata || $2::jsonb,
+            scheduled_retry_at = NOW() + INTERVAL '1 second' * $4
         WHERE id = $3
       `, [
         error.message,
         JSON.stringify({ retry_count: retryCount + 1, last_retry: new Date().toISOString() }),
         item.id,
+        Math.floor(delay / 1000) // Convert milliseconds to seconds
       ]);
-
-      // Schedule retry (simple timeout, could use proper job queue)
-      setTimeout(() => {
-        pollForJobs().catch(console.error);
-      }, delay);
     } else {
       // Max retries exceeded
       await query(`
@@ -397,9 +449,13 @@ async function processItemIntegration(item: IngestItem, job: IngestJob): Promise
       confidence: item.extraction_confidence,
     };
 
-    // Reconstruct routing decision
+    // Reconstruct routing decision - validate it exists
+    if (!item.routing_decision) {
+      throw new Error('Item missing routing decision - cannot proceed with integration');
+    }
+
     const routing = {
-      decision: item.routing_decision!,
+      decision: item.routing_decision,
       target_page_id: item.target_page_id,
       target_section: item.target_section,
       reasoning: item.routing_reasoning || '',

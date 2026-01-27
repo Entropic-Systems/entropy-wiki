@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { timingSafeEqual } from 'crypto';
 import { query, getClient } from '../db/client.js';
 import {
   IngestJob,
@@ -10,6 +11,7 @@ import {
   IngestItemResponse,
   IngestJobStatus,
   IngestItemStatus,
+  SourceType,
 } from '../types.js';
 import { backfillEmbeddings } from '../services/embeddings.js';
 
@@ -24,11 +26,29 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
     return res.status(500).json({ error: 'config_error', message: 'Server not configured for admin access' });
   }
 
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
+  // Constant-time comparison to prevent timing attacks
+  if (!password || !isValidPassword(password, process.env.ADMIN_PASSWORD)) {
     return res.status(401).json({ error: 'unauthorized', message: 'Invalid admin password' });
   }
 
   next();
+}
+
+/**
+ * Constant-time password comparison to prevent timing attacks
+ */
+function isValidPassword(provided: string, expected: string): boolean {
+  if (provided.length !== expected.length) {
+    // Still do timing-safe comparison to prevent length-based timing attacks
+    timingSafeEqual(Buffer.from('dummy'), Buffer.from('dummy'));
+    return false;
+  }
+
+  try {
+    return timingSafeEqual(Buffer.from(provided, 'utf8'), Buffer.from(expected, 'utf8'));
+  } catch {
+    return false;
+  }
 }
 
 // Apply auth to all ingest routes
@@ -66,30 +86,64 @@ router.post('/', async (req: Request, res: Response) => {
       const itemId = uuidv4();
       itemIds.push(itemId);
 
-      // Validate source_type
-      if (!['url', 'text', 'file', 'api'].includes(item.source_type)) {
+      // Validate source_type using the TypeScript enum values
+      const validSourceTypes: SourceType[] = ['url', 'text', 'file', 'api'];
+      if (!validSourceTypes.includes(item.source_type as SourceType)) {
         await client.query('ROLLBACK');
         return res.status(400).json({
           error: 'validation_error',
-          message: `Invalid source_type: ${item.source_type}. Must be one of: url, text, file, api`
+          message: `Invalid source_type: ${item.source_type}. Must be one of: ${validSourceTypes.join(', ')}`
         });
       }
 
       // Validate required fields based on source_type
-      if (item.source_type === 'url' && !item.url) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({
-          error: 'validation_error',
-          message: 'url is required when source_type is "url"'
-        });
+      if (item.source_type === 'url') {
+        if (!item.url) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            error: 'validation_error',
+            message: 'url is required when source_type is "url"'
+          });
+        }
+
+        // Validate URL format
+        try {
+          new URL(item.url);
+        } catch {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            error: 'validation_error',
+            message: `Invalid URL format: ${item.url}`
+          });
+        }
       }
 
-      if (item.source_type === 'text' && !item.content) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({
-          error: 'validation_error',
-          message: 'content is required when source_type is "text"'
-        });
+      if (item.source_type === 'text') {
+        if (!item.content) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            error: 'validation_error',
+            message: 'content is required when source_type is "text"'
+          });
+        }
+
+        // Validate content length (max 1MB)
+        if (item.content.length > 1024 * 1024) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            error: 'validation_error',
+            message: `Content too large: ${item.content.length} bytes. Maximum allowed is 1MB.`
+          });
+        }
+
+        // Validate content isn't just whitespace
+        if (item.content.trim().length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            error: 'validation_error',
+            message: 'Content cannot be empty or only whitespace'
+          });
+        }
       }
 
       const itemMetadata = item.metadata || {};
@@ -129,8 +183,8 @@ router.post('/', async (req: Request, res: Response) => {
 
 // GET /admin/ingest/jobs - List jobs with pagination
 router.get('/jobs', async (req: Request, res: Response) => {
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(Math.max(1, parseInt(req.query.limit as string) || 20), 100);
   const offset = (page - 1) * limit;
   const status = req.query.status as IngestJobStatus | undefined;
 
@@ -251,11 +305,10 @@ router.post('/jobs/:id/retry', async (req: Request, res: Response) => {
 
     const resetCount = resetResult.rowCount || 0;
 
-    // Update job counts
+    // Update job counts - don't decrement processed_items as trigger will increment when items are reprocessed
     await client.query(`
       UPDATE ingest_jobs
       SET status = CASE WHEN $2 > 0 THEN 'pending' ELSE status END,
-          processed_items = processed_items - $2,
           failed_items = 0,
           completed_at = NULL,
           error_message = NULL
@@ -364,8 +417,8 @@ router.post('/jobs/:id/items/:itemId/approve', async (req: Request, res: Respons
 router.get('/jobs/:id/items', async (req: Request, res: Response) => {
   const { id } = req.params;
   const status = req.query.status as IngestItemStatus | undefined;
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(Math.max(1, parseInt(req.query.limit as string) || 50), 200);
   const offset = (page - 1) * limit;
 
   try {
