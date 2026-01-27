@@ -121,7 +121,7 @@ export function SearchDialog({ searchData = [], isLoading: externalLoading = fal
         variant="outline"
         className="relative h-9 w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
         onClick={() => !error && !externalLoading && setIsOpen(true)}
-        disabled={error || externalLoading}
+        disabled={!!error || externalLoading}
       >
         {searchButtonContent()}
       </Button>
