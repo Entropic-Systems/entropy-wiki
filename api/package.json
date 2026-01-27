@@ -8,13 +8,15 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc && cp -r src/db/migrations dist/db/",
+    "build": "tsc && cp -r src/db/migrations dist/db/ && mkdir -p dist/scripts",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx scripts/migrate-markdown-to-db.ts",
-    "db:sync": "tsx scripts/sync-wiki-db.ts"
+    "db:sync": "tsx scripts/sync-wiki-db.ts",
+    "debug:collect": "tsx scripts/debug-bundle.ts",
+    "debug:analyze": "tsx scripts/debug-gate.ts"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.1",

@@ -1,0 +1,288 @@
+name: Debug Bundle Collection
+
+on:
+  # Manual trigger with parameters
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Collection mode'
+        required: false
+        default: 'logs'
+        type: choice
+        options:
+          - logs
+          - full
+      lookback:
+        description: 'Lookback window for logs'
+        required: false
+        default: '2h'
+        type: choice
+        options:
+          - 30m
+          - 2h
+          - 1d
+      collectors:
+        description: 'Collectors to run (comma-separated, or "all")'
+        required: false
+        default: 'all'
+        type: string
+
+  # Trigger on workflow failures
+  workflow_run:
+    workflows: ['Test']
+    types: [completed]
+    branches: [master, main]
+
+  # Optional scheduled baseline collection
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+
+# Permissions for GitHub API access
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  collect-debug-bundle:
+    name: Collect Debug Bundle
+    runs-on: ubuntu-latest
+    # Only run on failure or manual dispatch
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install API dependencies
+        run: cd api && npm ci
+
+      - name: Build API
+        run: cd api && npm run build
+
+      - name: Validate required secrets
+        id: validate-secrets
+        run: |
+          echo "Validating secrets availability..."
+          missing=""
+
+          if [ -z "${{ secrets.RAILWAY_TOKEN }}" ]; then
+            echo "::warning::RAILWAY_TOKEN not configured"
+            missing="${missing}RAILWAY_TOKEN,"
+          fi
+
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "::warning::VERCEL_TOKEN not configured"
+            missing="${missing}VERCEL_TOKEN,"
+          fi
+
+          echo "missing=${missing}" >> $GITHUB_OUTPUT
+
+          if [ -n "$missing" ]; then
+            echo "::warning::Some collectors may be skipped due to missing secrets: $missing"
+          fi
+
+      - name: Create debug bundle directory
+        run: mkdir -p debug-bundle
+
+      - name: Run debug collector
+        id: collect
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          API_BASE_URL: 'https://api.entropy-wiki.com'
+          DEBUG_MODE: ${{ inputs.mode || 'logs' }}
+          DEBUG_LOOKBACK: ${{ inputs.lookback || '2h' }}
+          DEBUG_COLLECTORS: ${{ inputs.collectors || 'all' }}
+        run: |
+          echo "Starting debug collection..."
+          echo "Mode: ${DEBUG_MODE}"
+          echo "Lookback: ${DEBUG_LOOKBACK}"
+          echo "Collectors: ${DEBUG_COLLECTORS}"
+
+          # Create collection metadata
+          cat > debug-bundle/metadata.json << EOF
+          {
+            "collectedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "mode": "${DEBUG_MODE}",
+            "lookback": "${DEBUG_LOOKBACK}",
+            "collectors": "${DEBUG_COLLECTORS}",
+            "trigger": "${{ github.event_name }}",
+            "repository": "${{ github.repository }}",
+            "ref": "${{ github.ref }}",
+            "sha": "${{ github.sha }}",
+            "runId": "${{ github.run_id }}",
+            "actor": "${{ github.actor }}"
+          }
+          EOF
+
+          # Run the debug collector script
+          cd api
+          node dist/scripts/debug-bundle.js \
+            --mode "${DEBUG_MODE}" \
+            --lookback "${DEBUG_LOOKBACK}" \
+            --collectors "${DEBUG_COLLECTORS}" \
+            --output "../debug-bundle" \
+            2>&1 | tee ../debug-bundle/collection.log || true
+
+          echo "Debug collection completed"
+
+      - name: Generate debug report
+        if: always()
+        run: |
+          echo "# Debug Bundle Report" > debug-bundle/REPORT.md
+          echo "" >> debug-bundle/REPORT.md
+          echo "**Collected at:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> debug-bundle/REPORT.md
+          echo "**Repository:** ${{ github.repository }}" >> debug-bundle/REPORT.md
+          echo "**Trigger:** ${{ github.event_name }}" >> debug-bundle/REPORT.md
+          echo "**Run ID:** ${{ github.run_id }}" >> debug-bundle/REPORT.md
+          echo "" >> debug-bundle/REPORT.md
+
+          if [ -f debug-bundle/debug-bundle.json ]; then
+            echo "## Collection Summary" >> debug-bundle/REPORT.md
+            echo '```json' >> debug-bundle/REPORT.md
+            cat debug-bundle/debug-bundle.json | head -100 >> debug-bundle/REPORT.md
+            echo '```' >> debug-bundle/REPORT.md
+          else
+            echo "## Warning" >> debug-bundle/REPORT.md
+            echo "Debug bundle not generated. Check collection.log for errors." >> debug-bundle/REPORT.md
+          fi
+
+          if [ -f debug-bundle/collection.log ]; then
+            echo "" >> debug-bundle/REPORT.md
+            echo "## Collection Log (last 50 lines)" >> debug-bundle/REPORT.md
+            echo '```' >> debug-bundle/REPORT.md
+            tail -50 debug-bundle/collection.log >> debug-bundle/REPORT.md
+            echo '```' >> debug-bundle/REPORT.md
+          fi
+
+      - name: Write completion marker
+        if: always()
+        run: |
+          touch debug-bundle/.complete
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > debug-bundle/.complete
+
+      - name: Upload debug bundle artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-bundle-${{ github.run_id }}
+          path: debug-bundle/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Debug Bundle Collection Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Run ID | ${{ github.run_id }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mode | ${{ inputs.mode || 'logs' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lookback | ${{ inputs.lookback || '2h' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f debug-bundle/debug-bundle.json ]; then
+            echo "Debug bundle generated successfully." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Warning: Debug bundle may be incomplete. Check artifacts." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Job to analyze collected data and create fix beads
+  analyze-errors:
+    name: Analyze Errors
+    runs-on: ubuntu-latest
+    needs: collect-debug-bundle
+    if: always() && needs.collect-debug-bundle.result != 'cancelled'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download debug bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: debug-bundle-${{ github.run_id }}
+          path: debug-bundle/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install API dependencies
+        run: cd api && npm ci
+
+      - name: Build API
+        run: cd api && npm run build
+
+      - name: Run error analysis
+        id: analyze
+        env:
+          DEBUG_BUNDLE_PATH: ../debug-bundle
+        run: |
+          echo "Analyzing debug bundle for actionable errors..."
+
+          if [ ! -f debug-bundle/debug-bundle.json ]; then
+            echo "No debug bundle found, skipping analysis"
+            echo "has_errors=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          cd api
+          node dist/scripts/debug-gate.js \
+            --input "../debug-bundle/debug-bundle.json" \
+            --output "../debug-bundle/analysis.json" \
+            2>&1 | tee ../debug-bundle/analysis.log || true
+
+          if [ -f ../debug-bundle/analysis.json ]; then
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_errors=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload analysis results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-analysis-${{ github.run_id }}
+          path: debug-bundle/analysis*
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Analysis Summary
+        if: always()
+        run: |
+          echo "## Error Analysis Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f debug-bundle/analysis.json ]; then
+            echo "Analysis results available in artifacts." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Key Findings" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            head -50 debug-bundle/analysis.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No errors requiring action were identified." >> $GITHUB_STEP_SUMMARY
+          fi

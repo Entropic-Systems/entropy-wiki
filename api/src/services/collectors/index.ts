@@ -17,5 +17,5 @@ export { RailwayDbCollector, railwayDbCollector, createRailwayDbCollector } from
 // GitHub Actions CI Collector
 export { GithubActionsCollector, githubActionsCollector, createGithubActionsCollector } from './github-actions.js';
 
-// Placeholder exports for future collectors (to be implemented)
-// export { VercelCollector, vercelCollector } from './vercel.js';
+// Vercel Frontend Collector
+export { VercelCollector, vercelCollector, createVercelCollector } from './vercel.js';
