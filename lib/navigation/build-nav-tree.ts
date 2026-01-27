@@ -75,9 +75,20 @@ export function buildNavTree(dir: string = DOCS_DIR, basePath: string = ''): Sid
       continue
     }
 
+    // Validate key to prevent path traversal
+    if (key.includes('..') || key.includes('/') || key.includes('\\')) {
+      console.warn(`Skipping potentially malicious navigation key: ${key}`);
+      continue
+    }
+
     const itemPath = path.join(dir, key)
     const isDirectory = fs.existsSync(itemPath) && fs.statSync(itemPath).isDirectory()
     const isFile = fs.existsSync(itemPath + '.md') || fs.existsSync(itemPath + '.mdx')
+
+    // Skip items that don't exist as file or directory
+    if (!isDirectory && !isFile) {
+      continue
+    }
 
     if (typeof value === 'string') {
       // Simple title mapping

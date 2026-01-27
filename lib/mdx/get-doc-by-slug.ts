@@ -6,15 +6,32 @@ import type { MDXDocument } from './types'
 const DOCS_DIR = path.join(process.cwd(), 'wiki')
 
 // Build-time debug logging
-const DEBUG_BUILD = process.env.NODE_ENV === 'production'
+const DEBUG_BUILD = process.env.NODE_ENV === 'development'
 
 /**
- * Convert slug to file path
+ * Convert slug to file path with security validation
  * Examples:
  *   "beads" -> wiki/beads/README.md
  *   "beads/lifecycle" -> wiki/beads/lifecycle.md
  */
 function slugToFilePath(slug: string[]): string | null {
+  // Validate each slug component
+  for (const component of slug) {
+    // Reject empty components
+    if (!component || component.trim() === '') {
+      return null;
+    }
+    // Reject path traversal attempts
+    if (component.includes('..') || component.includes('/') || component.includes('\\')) {
+      console.warn(`Potential path traversal attempt detected: ${component}`);
+      return null;
+    }
+    // Reject special characters that could be used maliciously
+    if (!/^[a-zA-Z0-9_-]+$/.test(component)) {
+      return null;
+    }
+  }
+
   const possiblePaths = [
     // Try exact path with .md
     path.join(DOCS_DIR, ...slug) + '.md',

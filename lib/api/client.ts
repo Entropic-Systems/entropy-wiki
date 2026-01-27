@@ -9,8 +9,8 @@ import type {
   ApiError,
 } from './types';
 
-// Bulk action types
-export type BulkAction = 'publish' | 'unpublish' | 'delete' | 'set_public' | 'set_private';
+// Bulk action types - must match backend supported actions
+export type BulkAction = 'publish' | 'unpublish' | 'delete';
 
 export interface BulkActionRequest {
   page_ids: string[];
@@ -29,7 +29,20 @@ export interface BulkActionResponse {
 }
 
 // API base URL - defaults to localhost for dev, can be overridden via env
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = (() => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl) return envUrl;
+
+  // In production, enforce HTTPS
+  if (process.env.NODE_ENV === 'production') {
+    console.error('NEXT_PUBLIC_API_URL must be set in production');
+    // Return a safe default that will fail rather than use HTTP
+    return 'https://api.example.com';
+  }
+
+  // Development default
+  return 'http://localhost:3001';
+})();
 
 class ApiClient {
   private baseUrl: string;
@@ -60,10 +73,19 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      const error: ApiError = await response.json().catch(() => ({
-        error: 'unknown_error',
-        message: `HTTP ${response.status}: ${response.statusText}`,
-      }));
+      let error: ApiError;
+      try {
+        error = await response.json();
+      } catch (parseError) {
+        // Log parse error for debugging but don't expose details to avoid information disclosure
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to parse error response:', parseError);
+        }
+        error = {
+          error: 'unknown_error',
+          message: 'Request failed',
+        };
+      }
       throw new ApiClientError(error.error, error.message, response.status);
     }
 

@@ -7,7 +7,22 @@ import type { PageWithContent } from './types';
 import type { MDXDocument } from '../mdx/types';
 
 // API base URL - server-side version
-const API_BASE_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = (() => {
+  // Server-side specific URL takes precedence
+  if (process.env.API_URL) return process.env.API_URL;
+
+  // Public URL as fallback
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+
+  // In production, enforce HTTPS
+  if (process.env.NODE_ENV === 'production') {
+    console.error('API_URL or NEXT_PUBLIC_API_URL must be set in production');
+    return 'https://api.example.com';
+  }
+
+  // Development default
+  return 'http://localhost:3001';
+})();
 
 /**
  * Fetch a page from the API by slug
