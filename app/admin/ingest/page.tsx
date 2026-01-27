@@ -83,15 +83,45 @@ export default function IngestPage() {
     setIsSubmitting(true)
 
     try {
-      const items = sourceType === 'url'
-        ? urlInput.split('\n').filter(u => u.trim()).map(url => ({
-            source_type: 'url' as const,
-            url: url.trim(),
-          }))
-        : [{
-            source_type: 'text' as const,
-            content: textInput,
-          }]
+      let items;
+
+      if (sourceType === 'url') {
+        const urls = urlInput.split('\n').filter(u => u.trim()).map(u => u.trim());
+
+        // Validate URLs on frontend
+        const invalidUrls = urls.filter(url => {
+          try {
+            new URL(url);
+            return false;
+          } catch {
+            return true;
+          }
+        });
+
+        if (invalidUrls.length > 0) {
+          throw new Error(`Invalid URL(s): ${invalidUrls.slice(0, 3).join(', ')}${invalidUrls.length > 3 ? ` and ${invalidUrls.length - 3} more` : ''}`);
+        }
+
+        items = urls.map(url => ({
+          source_type: 'url' as const,
+          url,
+        }));
+      } else {
+        // Validate text content
+        if (!textInput.trim()) {
+          throw new Error('Content cannot be empty or only whitespace');
+        }
+
+        // Check content length (max 1MB)
+        if (textInput.length > 1024 * 1024) {
+          throw new Error(`Content too large: ${(textInput.length / 1024).toFixed(1)}KB. Maximum allowed is 1MB.`);
+        }
+
+        items = [{
+          source_type: 'text' as const,
+          content: textInput.trim(),
+        }];
+      }
 
       if (items.length === 0) {
         throw new Error('Please provide at least one URL or some text content')

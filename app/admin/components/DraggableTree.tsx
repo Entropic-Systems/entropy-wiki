@@ -59,6 +59,7 @@ export function DraggableTree({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
   const [isBulkLoading, setIsBulkLoading] = useState(false)
+  const [pendingDeleteCount, setPendingDeleteCount] = useState<number | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -222,21 +223,28 @@ export function DraggableTree({
     }
   }, [onBulkUnpublish, selectedIds, clearSelection])
 
-  const handleBulkDelete = useCallback(async () => {
+  const handleBulkDelete = useCallback(() => {
     if (onBulkDelete && selectedIds.size > 0) {
-      const count = selectedIds.size
-      if (!confirm(`Delete ${count} ${count === 1 ? 'page' : 'pages'}? This cannot be undone.`)) {
-        return
-      }
+      setPendingDeleteCount(selectedIds.size)
+    }
+  }, [onBulkDelete, selectedIds])
+
+  const confirmBulkDelete = useCallback(async () => {
+    if (onBulkDelete && selectedIds.size > 0) {
       setIsBulkLoading(true)
       try {
         await onBulkDelete(Array.from(selectedIds))
         clearSelection()
       } finally {
         setIsBulkLoading(false)
+        setPendingDeleteCount(null)
       }
     }
   }, [onBulkDelete, selectedIds, clearSelection])
+
+  const cancelBulkDelete = useCallback(() => {
+    setPendingDeleteCount(null)
+  }, [])
 
   const activeNode = activeId ? findNode(activeId) : null
   const totalPages = flatNodes.length
@@ -259,6 +267,32 @@ export function DraggableTree({
 
   return (
     <div className="space-y-3">
+      {/* Delete Confirmation Modal */}
+      {pendingDeleteCount !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-2">Confirm Deletion</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Delete {pendingDeleteCount} {pendingDeleteCount === 1 ? 'page' : 'pages'}? This cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={cancelBulkDelete}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBulkDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <TreeControls
         selectedCount={selectedIds.size}
         onPublish={handleBulkPublish}

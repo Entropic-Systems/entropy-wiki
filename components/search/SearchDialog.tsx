@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '../ui/button'
+import { Skeleton } from '../ui/skeleton'
 import type { SearchIndex, SearchResult } from '@/lib/search/types'
 
 // Lazy load search functionality
@@ -11,13 +12,17 @@ let DocumentSearchClass: typeof import('@/lib/search/search').DocumentSearch | n
 
 interface SearchDialogProps {
   searchData?: SearchIndex[]
+  isLoading?: boolean
+  error?: string | null
 }
 
-export function SearchDialog({ searchData = [] }: SearchDialogProps) {
+type SearchInstance = InstanceType<typeof import('@/lib/search/search').DocumentSearch> | null
+
+export function SearchDialog({ searchData = [], isLoading: externalLoading = false, error = null }: SearchDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
-  const [searchInstance, setSearchInstance] = useState<any | null>(null)
+  const [searchInstance, setSearchInstance] = useState<SearchInstance>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
@@ -30,6 +35,10 @@ export function SearchDialog({ searchData = [] }: SearchDialogProps) {
         DocumentSearchClass = module.DocumentSearch
         setSearchInstance(new module.DocumentSearch(searchData))
         setIsLoading(false)
+      }).catch((error) => {
+        console.error('Failed to load search module:', error)
+        setIsLoading(false)
+        // Could set an error state here if needed
       })
     }
   }, [isOpen, searchData, searchInstance])
@@ -50,15 +59,20 @@ export function SearchDialog({ searchData = [] }: SearchDialogProps) {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
-  // Perform search when query changes
+  // Debounced search to improve performance
   useEffect(() => {
     if (!searchInstance || !query.trim()) {
       setResults([])
       return
     }
 
-    const searchResults = searchInstance.search(query, { limit: 10 })
-    setResults(searchResults)
+    // Debounce search by 300ms to prevent excessive calls
+    const timeoutId = setTimeout(() => {
+      const searchResults = searchInstance.search(query, { limit: 10 })
+      setResults(searchResults)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
   }, [query, searchInstance])
 
   const handleResultClick = (url: string) => {
@@ -68,28 +82,57 @@ export function SearchDialog({ searchData = [] }: SearchDialogProps) {
     router.push(url)
   }
 
-  return (
-    <>
-      <Button
-        variant="outline"
-        className="relative h-9 w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
-        onClick={() => setIsOpen(true)}
-      >
+  const searchButtonContent = () => {
+    if (externalLoading) {
+      return (
+        <>
+          <Skeleton className="mr-2 h-4 w-4 rounded" />
+          <span className="hidden lg:inline-flex">Loading search...</span>
+          <span className="inline-flex lg:hidden">Loading...</span>
+        </>
+      )
+    }
+
+    if (error) {
+      return (
+        <>
+          <Search className="mr-2 h-4 w-4 opacity-50" />
+          <span className="hidden lg:inline-flex text-muted-foreground">Search unavailable</span>
+          <span className="inline-flex lg:hidden text-muted-foreground">Search</span>
+        </>
+      )
+    }
+
+    return (
+      <>
         <Search className="mr-2 h-4 w-4" />
         <span className="hidden lg:inline-flex">Search documentation...</span>
         <span className="inline-flex lg:hidden">Search...</span>
         <kbd className="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">⌘</span>K
         </kbd>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        className="relative h-9 w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
+        onClick={() => !error && !externalLoading && setIsOpen(true)}
+        disabled={error || externalLoading}
+      >
+        {searchButtonContent()}
       </Button>
 
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-opacity duration-300"
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-background p-0 shadow-lg sm:rounded-lg"
+            className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-background p-0 shadow-lg sm:rounded-lg transform transition-all duration-300 scale-100 opacity-100"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center border-b px-3">
@@ -113,7 +156,16 @@ export function SearchDialog({ searchData = [] }: SearchDialogProps) {
                 </div>
               ) : results.length === 0 ? (
                 <div className="p-4 text-center text-sm text-muted-foreground">
-                  No results found for "{query}"
+                  No results found for &quot;{query.replace(/[<>&"']/g, (char) => {
+                    switch (char) {
+                      case '<': return '&lt;';
+                      case '>': return '&gt;';
+                      case '&': return '&amp;';
+                      case '"': return '&quot;';
+                      case "'": return '&#x27;';
+                      default: return char;
+                    }
+                  })}&quot;
                 </div>
               ) : (
                 <div className="py-2">
@@ -131,7 +183,7 @@ export function SearchDialog({ searchData = [] }: SearchDialogProps) {
                         <span className="font-medium text-sm">{result.title}</span>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2">
-                        {result.content.slice(0, 150)}...
+                        {result.content.length > 150 ? `${result.content.slice(0, 150)}...` : result.content}
                       </p>
                     </button>
                   ))}

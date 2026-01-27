@@ -10,22 +10,42 @@ import type { SearchIndex } from '@/lib/search/types'
 
 export function Header() {
   const [searchData, setSearchData] = useState<SearchIndex[]>([])
+  const [searchLoading, setSearchLoading] = useState(true)
+  const [searchError, setSearchError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Load search index
+    // Load search index with proper state management
     fetch('/search-index.json')
-      .then((res) => res.json())
-      .then((data) => setSearchData(data))
-      .catch((err) => console.error('Failed to load search index:', err))
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load search index: ${res.status}`)
+        }
+        return res.json()
+      })
+      .then((data) => {
+        setSearchData(data)
+        setSearchError(null)
+      })
+      .catch((err) => {
+        console.error('Failed to load search index:', err)
+        setSearchError(err.message)
+      })
+      .finally(() => {
+        setSearchLoading(false)
+      })
   }, [])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex md:mr-6">
-          <Link href="/" className="mr-6 flex items-center space-x-2" aria-label="Entropy Wiki home">
-            <span className="font-bold text-xl" aria-hidden="true">⚡</span>
-            <span className="hidden font-bold sm:inline-block">
+          <Link href="/" className="mr-6 flex items-center space-x-2 group transition-colors" aria-label="Entropy Wiki home">
+            <div className="w-6 h-6 rounded bg-gradient-to-br from-primary to-accent-cyan p-1.5">
+              <div className="w-full h-full bg-background rounded-sm flex items-center justify-center">
+                <div className="w-2 h-2 bg-primary rounded-full group-hover:animate-pulse" />
+              </div>
+            </div>
+            <span className="hidden font-bold sm:inline-block group-hover:text-primary transition-colors">
               {siteConfig.name}
             </span>
           </Link>
@@ -33,7 +53,11 @@ export function Header() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
-            <SearchDialog searchData={searchData} />
+            <SearchDialog
+              searchData={searchData}
+              isLoading={searchLoading}
+              error={searchError}
+            />
           </div>
 
           <nav className="flex items-center space-x-2" aria-label="External links">
