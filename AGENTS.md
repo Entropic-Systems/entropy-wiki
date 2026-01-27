@@ -38,6 +38,13 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## Git Workflow
+
+- NEVER commit directly to main
+- Create feature branches: `git checkout -b feature/description`
+- Make commits on feature branch
+- Create PR when ready: `gh pr create`
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
