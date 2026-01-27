@@ -58,18 +58,28 @@ CREATE INDEX IF NOT EXISTS idx_ingest_items_target_page ON ingest_items(target_p
 -- Function to auto-update processed_items count on ingest_jobs
 CREATE OR REPLACE FUNCTION update_ingest_job_counts()
 RETURNS TRIGGER AS $$
+DECLARE
+  old_was_incomplete BOOLEAN;
+  new_is_complete BOOLEAN;
 BEGIN
   IF TG_OP = 'UPDATE' AND OLD.status IS DISTINCT FROM NEW.status THEN
-    -- Update counts when item status changes to completed or failed
-    IF NEW.status = 'completed' THEN
-      UPDATE ingest_jobs
-      SET processed_items = processed_items + 1
-      WHERE id = NEW.job_id;
-    ELSIF NEW.status = 'failed' THEN
-      UPDATE ingest_jobs
-      SET processed_items = processed_items + 1,
-          failed_items = failed_items + 1
-      WHERE id = NEW.job_id;
+    -- Check if the old status was incomplete and new status is complete/failed
+    old_was_incomplete := OLD.status IN ('pending', 'extracting', 'routing', 'integrating');
+    new_is_complete := NEW.status IN ('completed', 'failed');
+
+    -- Only increment counts when transitioning from incomplete to complete/failed
+    IF old_was_incomplete AND new_is_complete THEN
+      -- Use atomic operations to prevent race conditions
+      IF NEW.status = 'completed' THEN
+        UPDATE ingest_jobs
+        SET processed_items = processed_items + 1
+        WHERE id = NEW.job_id;
+      ELSIF NEW.status = 'failed' THEN
+        UPDATE ingest_jobs
+        SET processed_items = processed_items + 1,
+            failed_items = failed_items + 1
+        WHERE id = NEW.job_id;
+      END IF;
     END IF;
   END IF;
   RETURN NEW;

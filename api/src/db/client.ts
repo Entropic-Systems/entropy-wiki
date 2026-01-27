@@ -1,21 +1,21 @@
 import { Pool, PoolClient } from 'pg';
 
-// Log database configuration on startup
+// Log database configuration on startup (non-sensitive info only)
 const dbUrl = process.env.DATABASE_URL || '';
 console.log('Database config:', {
   hasUrl: !!dbUrl,
-  host: dbUrl.match(/@([^:\/]+)/)?.[1] || 'unknown',
   isInternal: dbUrl.includes('.railway.internal'),
+  // Note: Host information removed to prevent information disclosure
 });
 
-// Create connection pool - no SSL for Railway internal connections
+// Create connection pool with configurable SSL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 5,
+  max: parseInt(process.env.DB_POOL_MAX || '10'), // Increased default pool size
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
-  // Don't use SSL for internal Railway connections
-  ssl: false,
+  // Configure SSL based on environment - default to false for Railway internal
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
 // Log connection errors but don't exit
