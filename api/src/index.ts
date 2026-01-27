@@ -7,6 +7,7 @@ import { adminRouter } from './routes/admin.js';
 import { ingestRouter } from './routes/ingest.js';
 import { closePool, query } from './db/client.js';
 import { startProcessor, stopProcessor } from './services/processor.js';
+import { getAdminPasswordHash, comparePassword } from './utils/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -65,8 +66,19 @@ import { fileURLToPath } from 'url';
 
 app.post('/admin/migrate', async (req: Request, res: Response) => {
   const password = req.headers['x-admin-password'] as string;
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
+  if (!password) {
     return res.status(401).json({ error: 'unauthorized' });
+  }
+
+  try {
+    const adminPasswordHash = await getAdminPasswordHash();
+    const isValid = await comparePassword(password, adminPasswordHash);
+    if (!isValid) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+  } catch (authErr) {
+    console.error('Auth configuration error:', authErr);
+    return res.status(500).json({ error: 'config_error', message: 'Server not configured for admin access' });
   }
 
   try {
@@ -90,8 +102,43 @@ app.post('/admin/migrate', async (req: Request, res: Response) => {
       }
 
       const sql = readFileSync(join(migrationsDir, file), 'utf-8');
-      await query(sql);
-      results.push(`Applied ${migrationName}`);
+
+      // Validate migration SQL - only allow safe DDL/DML operations
+      const sqlLower = sql.toLowerCase();
+      const dangerousPatterns = [
+        /;\s*drop\s+database/i,
+        /;\s*create\s+database/i,
+        /;\s*alter\s+database/i,
+        /;\s*grant\s+/i,
+        /;\s*revoke\s+/i,
+        /;\s*create\s+user/i,
+        /;\s*alter\s+user/i,
+        /;\s*drop\s+user/i,
+        /copy\s+.*\s+from\s+program/i,
+        /pg_read_file/i,
+        /pg_ls_dir/i,
+        /lo_import/i,
+        /lo_export/i
+      ];
+
+      for (const pattern of dangerousPatterns) {
+        if (pattern.test(sql)) {
+          throw new Error(`Migration ${migrationName} contains potentially dangerous SQL operations`);
+        }
+      }
+
+      // Execute within a transaction for safety
+      await query('BEGIN');
+      try {
+        await query(sql);
+        // Record migration as applied
+        await query('INSERT INTO _migrations (name, applied_at) VALUES ($1, NOW()) ON CONFLICT (name) DO NOTHING', [migrationName]);
+        await query('COMMIT');
+        results.push(`Applied ${migrationName}`);
+      } catch (migrationErr) {
+        await query('ROLLBACK');
+        throw migrationErr;
+      }
     }
 
     res.json({ status: 'ok', migrations: results });

@@ -1,24 +1,34 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { timingSafeEqual } from 'crypto';
 import { query, getClient } from '../db/client.js';
 import { Page, PageWithContent, PageTreeNode, CreatePageRequest, UpdatePageRequest } from '../types.js';
+import { getAdminPasswordHash, comparePassword } from '../utils/auth.js';
+import { validateSlug, validateTitle, validateContent, validateUUID, sanitizeString } from '../utils/validation.js';
 
 const router = Router();
 
-// Auth middleware - MVP with password header
-function authMiddleware(req: Request, res: Response, next: NextFunction) {
+// Auth middleware - uses bcrypt for secure password comparison
+async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const password = req.headers['x-admin-password'] as string;
 
-  if (!process.env.ADMIN_PASSWORD) {
-    console.error('ADMIN_PASSWORD not set in environment');
+  if (!password) {
+    return res.status(401).json({ error: 'unauthorized', message: 'Admin password required' });
+  }
+
+  try {
+    const adminPasswordHash = await getAdminPasswordHash();
+    const isValid = await comparePassword(password, adminPasswordHash);
+
+    if (!isValid) {
+      return res.status(401).json({ error: 'unauthorized', message: 'Invalid admin password' });
+    }
+
+    next();
+  } catch (err) {
+    console.error('Auth configuration error:', err);
     return res.status(500).json({ error: 'config_error', message: 'Server not configured for admin access' });
   }
-
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'unauthorized', message: 'Invalid admin password' });
-  }
-
-  next();
 }
 
 // Apply auth to all admin routes
@@ -193,6 +203,14 @@ router.get('/pages/:id', async (req: Request, res: Response) => {
 
 // POST /admin/pages - Create a new page
 router.post('/pages', async (req: Request, res: Response) => {
+  // Validate request body structure
+  if (!req.body || typeof req.body !== 'object') {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid request body'
+    });
+  }
+
   const body = req.body as CreatePageRequest;
 
   if (!body.slug || !body.title || !body.content_md) {
@@ -201,6 +219,33 @@ router.post('/pages', async (req: Request, res: Response) => {
       message: 'slug, title, and content_md are required'
     });
   }
+
+  // Validate slug
+  if (!validateSlug(body.slug)) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid slug format. Must be URL-safe and not contain path traversal attempts'
+    });
+  }
+
+  // Validate title
+  if (!validateTitle(body.title)) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid title. Must be between 1 and 500 characters'
+    });
+  }
+
+  // Validate content
+  if (!validateContent(body.content_md)) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid content. Maximum size is 10MB'
+    });
+  }
+
+  // Sanitize inputs
+  const sanitizedTitle = sanitizeString(body.title);
 
   const client = await getClient();
 
@@ -215,7 +260,7 @@ router.post('/pages', async (req: Request, res: Response) => {
     await client.query(`
       INSERT INTO pages (id, slug, title, status)
       VALUES ($1, $2, $3, $4)
-    `, [pageId, body.slug, body.title, status]);
+    `, [pageId, body.slug, sanitizedTitle, status]);
 
     // Create the revision (now page exists for FK)
     await client.query(`
@@ -239,7 +284,7 @@ router.post('/pages', async (req: Request, res: Response) => {
       page: {
         id: pageId,
         slug: body.slug,
-        title: body.title,
+        title: sanitizedTitle,
         status,
         current_published_revision_id: publishedRevId,
         current_draft_revision_id: draftRevId,
@@ -264,6 +309,29 @@ router.post('/pages', async (req: Request, res: Response) => {
 router.patch('/pages/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const body = req.body as UpdatePageRequest;
+
+  // Validate page ID
+  if (!validateUUID(id)) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid page ID format'
+    });
+  }
+
+  // Validate optional fields if provided
+  if (body.title !== undefined && !validateTitle(body.title)) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid title. Must be between 1 and 500 characters'
+    });
+  }
+
+  if (body.content_md !== undefined && !validateContent(body.content_md)) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid content. Maximum size is 10MB'
+    });
+  }
 
   const client = await getClient();
 
@@ -294,7 +362,7 @@ router.patch('/pages/:id', async (req: Request, res: Response) => {
     }
 
     // Update page metadata
-    const title = body.title ?? existing.title;
+    const title = body.title ? sanitizeString(body.title) : existing.title;
     const status = body.status ?? existing.status;
 
     await client.query(`
@@ -328,6 +396,22 @@ router.patch('/pages/:id', async (req: Request, res: Response) => {
 router.post('/pages/:id/move', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { parent_id, sort_order } = req.body as { parent_id: string | null; sort_order?: number };
+
+  // Validate page ID
+  if (!validateUUID(id)) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid page ID format'
+    });
+  }
+
+  // Validate parent_id if provided
+  if (parent_id !== null && !validateUUID(parent_id)) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: 'Invalid parent ID format'
+    });
+  }
 
   const client = await getClient();
 
