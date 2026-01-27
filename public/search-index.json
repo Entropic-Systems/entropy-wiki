@@ -1,129 +1,17 @@
 [
   {
-    "id": "claude-code",
-    "title": "README",
-    "content": "Claude Code Your command center for AI-assisted development. Claude Code is the terminal-based AI coding agent that turns you into a Droid overlord.  What You'll Learn - Introduction - What Claude Code is and why it's the focus - Agent Comparison - Claude Code vs Codex vs Amp - Core Concepts - Skills, hooks, commands, and agents - Plugins - Extend Claude Code with MCP servers  Quick Links - Introduction - Start here - Agent Comparison - Compare coding agents - Core Concepts - Understand the building blocks - Plugins - Browser automation, GitHub CLI, and more",
-    "url": "/claude-code",
-    "category": "claude-code"
+    "id": "skills-bank/overview",
+    "title": "Skills Overview",
+    "content": "Agent Skills Create, manage, and share Skills to extend Claude's capabilities in Claude Code.  What is a Skill? A Skill is a markdown file that teaches Claude how to do something specific: reviewing PRs using your team's standards, generating commit messages in your preferred format, or querying your company's database schema. When you ask Claude something that matches a Skill's purpose, Claude automatically applies it.  How Skills Work Skills are model-invoked: Claude decides which Skills to use based on your request. You don't need to explicitly call a Skill. Claude automatically applies relevant Skills when your request matches their description. When you send a request, Claude follows these steps: 1. Discovery: At startup, Claude loads only the name and description of each available Skill 2. Activation: When your request matches a Skill's description, Claude asks to use the Skill 3. Execution: Claude follows the Skill's instructions, loading referenced files or running bundled scri",
+    "url": "/skills-bank/overview",
+    "category": "skills-bank"
   },
   {
-    "id": "claude-code/agent-comparison",
-    "title": "agent-comparison",
-    "content": "Agent Comparison Claude Code, Codex, and Amp are all AI coding agents that work similarly. Understanding their differences helps you choose the right tool - or use them all strategically.  The Big Picture These agents share the same paradigm: - Terminal/CLI-based interaction - File system access - Command execution - Agentic loops (work until task complete) The main differences? Provider, pricing, and specific capabilities.  Why Multiple Agents? Smart developers use multiple agents because: 1. Cost optimization - Spread usage across different pricing tiers 2. Capability matching - Some tasks suit certain models better 3. Availability - Fallback when one service is down 4. Plan limits - Work around monthly caps  Comparison Table | Feature | Claude Code | Codex (OpenAI) | Amp | |---------|-------------|----------------|-----| | Provider | Anthropic | OpenAI | Sourcegraph | | Model | Claude | GPT-4 | Various | | Skills system | Yes | No | No | | Hooks (events) | Yes | Limited | No | | MCP",
-    "url": "/claude-code/agent-comparison",
-    "category": "claude-code"
-  },
-  {
-    "id": "claude-code/core-concepts",
-    "title": "core-concepts",
-    "content": "Core Concepts Claude Code's power comes from four building blocks: Skills, Hooks, Commands, and Agents. Master these to become a true Droid overlord.  Skills Skills are reusable workflows you invoke with slash commands.  Creating Skills Skills live in  as markdown files:  Why Skills Matter - Consistency - Same workflow every time - Reusability - Define once, use everywhere - Shareability - Check into git, share with team  Hooks Hooks run code in response to events. They're how you automate Claude Code.  Hook Types | Hook | When it Fires | |------|---------------| |  | Before Claude uses a tool | |  | After a tool completes | |  | When Claude starts | |  | When Claude finishes |  Example Hook  Commands Commands are built-in actions you can invoke: | Command | What it Does | |---------|--------------| |  | Show available commands | |  | Clear conversation | |  | Compress context | |  | Enter planning mode |  Agents (Sub-agents) Claude Code can spawn specialized sub-agents for parallel wo",
-    "url": "/claude-code/core-concepts",
-    "category": "claude-code"
-  },
-  {
-    "id": "claude-code/introduction",
-    "title": "introduction",
-    "content": "Introduction to Claude Code Claude Code is Anthropic's terminal-based AI coding assistant. It's not just another chatbot - it's a full development environment that can read, write, and execute code autonomously.  Why Claude Code? Claude Code stands out from other AI coding tools because it: - Runs in your terminal - Native CLI experience, not a web app - Has file system access - Reads and writes files directly - Executes commands - Runs tests, builds, and git operations - Supports MCP - Model Context Protocol for extending capabilities - Skills & Hooks - Customize behavior with reusable patterns  Core Architecture  Getting Started 1. Install Claude Code from Anthropic 2. Run  in your project directory 3. Start giving instructions That's it. Claude Code will read your codebase and help you build.  Next Steps - Agent Comparison - See how Claude Code compares to Codex and Amp - Core Concepts - Learn about skills, hooks, and commands - Plugins - Extend with browser automation and more",
-    "url": "/claude-code/introduction",
-    "category": "claude-code"
-  },
-  {
-    "id": "claude-code/plugins",
-    "title": "README",
-    "content": "Plugins Plugins extend Claude Code with specialized capabilities via MCP (Model Context Protocol) servers.  Available Plugins  Playwright Browser automation for visual testing, functional validation, and layout debugging.  GitHub CLI Native GitHub operations - PRs, issues, code review directly from Claude Code.  Frontend Design Production-grade UI creation with bold aesthetic direction.  Wiki Ingest Content capture and wiki entry creation.  How Plugins Work Plugins are MCP servers that give Claude new tools: Once configured, Claude can use browser automation:  Why MCP Matters MCP is Claude's extension system. It lets you: - Add new capabilities without modifying Claude - Share plugins across projects - Build custom tools for your workflow Think of MCP servers as \"apps\" for Claude Code.",
-    "url": "/claude-code/plugins",
-    "category": "claude-code"
-  },
-  {
-    "id": "claude-code/plugins/frontend-design",
-    "title": "frontend-design",
-    "content": "Frontend Design Plugin Production-grade interface creation with bold aesthetic direction that avoids generic AI patterns.  Overview The Frontend Design plugin guides creation of distinctive, memorable user interfaces with exceptional attention to aesthetic details and creative choices. It produces real working code (HTML/CSS/JS, React, Vue, etc.) that is: - Visually striking - Memorable and distinctive - Production-grade - Functional and performant - Cohesive - Clear aesthetic point-of-view - Refined - Meticulously detailed  Core Philosophy Avoid \"AI slop\" - Generic aesthetics that scream \"made by AI\": - ❌ Overused fonts (Inter, Roboto, Arial, system fonts) - ❌ Cliched colors (purple gradients on white backgrounds) - ❌ Predictable layouts and component patterns - ❌ Cookie-cutter design lacking context-specific character Embrace bold direction - Commit to a clear conceptual vision: - ✅ Distinctive font pairings - ✅ Cohesive color systems with personality - ✅ Unexpected layouts and compo",
-    "url": "/claude-code/plugins/frontend-design",
-    "category": "claude-code"
-  },
-  {
-    "id": "claude-code/plugins/github",
-    "title": "github",
-    "content": "GitHub CLI Integration Native GitHub operations through the  command for pull requests, issues, code review, and repository management.  Overview GitHub CLI () integration enables Claude Code to interact directly with GitHub repositories through the Bash tool. This provides: - Pull request creation - Create PRs with comprehensive descriptions - Issue management - View, create, and update issues - Code review - Comment on PRs, view diffs, check status - Repository operations - Clone, fork, view details - Release management - Create releases, view tags - GitHub Actions - View workflow runs, check CI status  Installation  1. Install GitHub CLI macOS: Linux: Windows:  2. Authenticate Follow the prompts to authenticate via browser or token.  3. Verify Installation  Core Commands  Pull Requests  Create PR  View PRs  PR Comments  Issues  Create Issue  Manage Issues  Repository  Clone & Fork  Releases  Workflows  View CI Status  Integration with Git Workflow The GitHub CLI enhances the git-wor",
-    "url": "/claude-code/plugins/github",
-    "category": "claude-code"
-  },
-  {
-    "id": "claude-code/plugins/playwright",
-    "title": "playwright",
-    "content": "Playwright Plugin Browser automation for visual testing, functional validation, and layout debugging via Model Context Protocol (MCP) integration.  Overview The Playwright plugin provides a complete browser automation toolkit through MCP, enabling: - Visual regression testing - Screenshot comparisons before/after changes - Functional validation - Verify user interactions and flows - Layout debugging - Inspect CSS, DOM structure, and rendering issues - Responsive testing - Test across different viewport sizes - Accessibility checks - Validate ARIA attributes and semantics  Installation & Setup  1. Configure MCP Server Add to  in project root:  2. Restart Claude Code The MCP server loads on startup. Restart to activate Playwright tools.  3. Verify Installation Check that Playwright tools are available: -  - Navigate to URL -  - Capture accessibility snapshot -  - Take screenshots -  - Click elements -  - Run JavaScript in page context  Available Tools  Navigation -  - Load a page -  - Go",
-    "url": "/claude-code/plugins/playwright",
-    "category": "claude-code"
-  },
-  {
-    "id": "claude-code/plugins/wiki-ingest",
-    "title": "Wiki Ingest",
-    "content": "Wiki Ingest Ingest external content (URLs or text) into the entropy-wiki with automatic classification and routing.  Usage  How It Works  Section Classification | Section | Content Types | |---------|--------------| |  | Skills, hooks, agents, plugins, MCP | |  | Multi-agent, coordination, frameworks, memory, patterns |  Decision Logic Enhance existing when: - Content has >60% overlap with existing entry - Adds details, examples, or updates to existing topic Create new when: - Topic fits section but no similar entry exists - Distinct subtopic warranting standalone entry Stage when: - Content doesn't clearly fit any section - Needs manual review and organization  Output Format New entries include frontmatter:  Post-Ingestion After creating new entries:  See Also - Plugins Overview - All Claude Code plugins - Core Concepts - Skills, hooks, commands",
-    "url": "/claude-code/plugins/wiki-ingest",
-    "category": "claude-code"
-  },
-  {
-    "id": "claude-code/quick-start",
-    "title": "quick-start",
-    "content": "Quick Start Guide Get from zero to commanding AI agents in 5 minutes.  Step 1: Install Claude Code  Step 2: Start a Session Navigate to your project and run: Claude Code will: 1. Read your codebase 2. Start an interactive session 3. Wait for your instructions  Step 3: Give Your First Command Try something simple: Claude will analyze your project and give you an overview.  Step 4: Make Changes Now try making a change: Watch as Claude: 1. Analyzes what documentation would be useful 2. Creates the file 3. Shows you the result  Step 5: Use a Skill Skills are pre-built workflows. Try the commit skill: This will: 1. Check git status 2. Stage appropriate changes 3. Generate a commit message 4. Create the commit (with your approval)  What's Next? You just commanded an AI agent to do your bidding. Here's where to go deeper:  Learn Claude Code Fundamentals - Introduction - What Claude Code is - Core Concepts - Skills, hooks, commands, agents - Plugins - Extend with MCP servers  Understand Orches",
-    "url": "/claude-code/quick-start",
-    "category": "claude-code"
-  },
-  {
-    "id": "content-mapping",
-    "title": "Content Mapping",
-    "content": "Content Mapping: docs/ to wiki/ This document maps all files in  to their target destinations in .  Summary - Total files in docs/: 35 - Files to migrate: 35 - Target sections: 7 (context, orchestration, plugins, skills-bank, tooling-mcp, beads, gastown)  Mapping by Source Directory  /docs/agent-knowledge-base/ | Source | Target | Status | |--------|--------|--------| | INDEX.md | wiki/home.md (merged) | Overlap | | claude-code-essentials.md | wiki/getting-started.md | Novel |  /docs/agent-knowledge-base/context/ | Source | Target | Status | |--------|--------|--------| | agentsmd-spec.md | wiki/context/agents-md-spec.md | Novel | | anthropic-context-engineering.md | wiki/context/context-engineering.md | Novel | | github-par.md | wiki/context/parallel-agents.md | Novel | | google-adk.md | wiki/context/google-adk.md | Novel | | humanlayer-claude-md.md | wiki/context/claude-md-patterns.md | Novel |  /docs/agent-knowledge-base/coordination/ | Source | Target | Status | |--------|--------|",
-    "url": "/content-mapping",
-    "category": "content-mapping"
-  },
-  {
-    "id": "context",
-    "title": "Context",
-    "content": "Context Documentation for managing context windows and optimizing information flow in AI-assisted development.  Topics  Context Engineering - Context Engineering - Managing token composition during inference - CLAUDE.md Patterns - Best practices for writing effective CLAUDE.md files - AGENTS.md Specification - Vendor-neutral format for guiding AI agents  Multi-Agent Architecture - Google ADK Architecture - Core concepts from Google's Agent Development Kit - Parallel Worktree Management - Par CLI for concurrent development workflows  Key Concepts  Context Rot LLMs experience performance degradation as context length increases. The more tokens in the context window, the harder it becomes for the model to accurately recall and utilize information.  Context Compaction Summarizing conversations nearing capacity limits to preserve critical decisions while discarding redundant outputs.  Progressive Disclosure Loading files and information only when needed, rather than front-loading everything",
-    "url": "/context",
-    "category": "context"
-  },
-  {
-    "id": "context/agents-md-spec",
-    "title": "AGENTS.md Specification",
-    "content": "AGENTS.md Specification Summary  Core Definition AGENTS.md is a vendor-neutral markdown format designed to guide AI coding agents. As stated on the official site: \"A simple, open format for guiding coding agents, used by over 60k open-source projects.\"  Schema and Structure Rather than enforcing a rigid schema, AGENTS.md intentionally remains flexible. The specification explicitly states: \"AGENTS.md is just standard Markdown. Use any headings you like; the agent simply parses the text you provide.\" Common sections include: - Project overview - Build and test commands - Code style guidelines - Testing instructions - Security considerations - PR/commit message guidelines  Agent Personas and Boundaries The format doesn't define specific agent personas but rather creates \"a dedicated, predictable place to provide the context and instructions\" for any AI coding agent to operate effectively. Key boundary principle: \"The closest AGENTS.md to the edited file wins; explicit user chat prompts ov",
-    "url": "/context/agents-md-spec",
-    "category": "context"
-  },
-  {
-    "id": "context/claude-md-patterns",
-    "title": "CLAUDE.md Patterns",
-    "content": "CLAUDE.md Specification Summary  Recommended Length CLAUDE.md files should be under 300 lines, with shorter being preferable. HumanLayer's own root file is less than 60 lines.  What to Include The file should cover three essential areas: 1. WHAT - Technical stack and project structure. \"Give Claude a map of the codebase,\" particularly important for monorepos where you clarify apps, shared packages, and their purposes. 2. WHY - Project purpose and the function of different components so Claude understands the system's intent. 3. HOW - Practical workflow information: build tools (e.g.,  vs ), test execution, verification methods, and compilation steps needed for meaningful work.  What to Avoid The article explicitly recommends against: - Code style guidelines - \"Never send an LLM to do a linter's job.\" Use deterministic linters instead. - Excessive instructions - Frontier LLMs can reliably follow \"~150-200 instructions.\" Since Claude Code's system prompt already contains ~50 instructions",
-    "url": "/context/claude-md-patterns",
-    "category": "context"
-  },
-  {
-    "id": "context/context-engineering",
-    "title": "Context Engineering",
-    "content": "Context Engineering for AI Agents  Context Engineering vs. Prompt Engineering Prompt engineering focuses on crafting effective LLM instructions, particularly system prompts. Context engineering represents the broader evolution - managing the entire token composition during inference, including system instructions, tools, external data, and message history across multiple turns. As Anthropic explains: \"context engineering is iterative and the curation phase happens each time we decide what to pass to the model.\"  Context Rot Phenomenon LLMs experience performance degradation as context length increases. Research shows that \"as the number of tokens in the context window increases, the model's ability to accurately recall information from that context decreases.\" This stems from transformer architecture's n-squared pairwise token relationships. Models trained on shorter sequences have fewer specialized parameters for long-range dependencies, creating a performance gradient rather than a h",
-    "url": "/context/context-engineering",
-    "category": "context"
-  },
-  {
-    "id": "context/google-adk",
-    "title": "Google ADK Architecture",
-    "content": "Google ADK: Core Architectural Concepts  1. Compiled View Concept Google's ADK treats context as a derived representation rather than mutable storage. The framework separates concerns into layers: - Sources: Sessions, memory, and artifacts contain full structured state - Compiler pipeline: Flows and processors transform that state through ordered passes - Output: Working context is the ephemeral projection sent to the LLM As the article states: \"Context is a compiled view over a richer stateful system.\" This shift reframes context management from prompt engineering into systems architecture, where you ask questions about intermediate representations, compaction points, and transformation observability.  2. Handle Pattern for Artifacts Rather than embedding large data (5MB CSVs, PDFs, JSON responses) directly in prompts, ADK uses indirect references: - Large objects live in an  as named, versioned resources - Agents see lightweight summaries by default - The  allows agents to fetch full",
-    "url": "/context/google-adk",
-    "category": "context"
-  },
-  {
-    "id": "context/parallel-agents",
-    "title": "Parallel Worktree Management",
-    "content": "Par: Parallel Worktree and Session Manager par is a CLI tool that streamlines concurrent development workflows by combining Git worktrees with tmux session management. It enables developers - particularly those working with AI coding assistants - to manage multiple isolated development environments globally.  Core Functionality The tool creates isolated workspaces where each session gets its own directory, Git branch, and tmux session. As the documentation states, it's designed to solve a fundamental problem: \"traditional Git branch switching is not ideal for handling multiple concurrent workstreams on the same repository.\"  Key Capabilities - Global session management: Create, list, and access development contexts from anywhere on your system - Multi-repository workspaces: Coordinate changes across multiple repositories with synchronized branch naming - Remote command execution: Send commands to specific sessions or broadcast to all contexts simultaneously - IDE integration: Auto-gene",
-    "url": "/context/parallel-agents",
-    "category": "context"
-  },
-  {
-    "id": "home",
-    "title": "Entropy Wiki",
-    "content": "Entropy Wiki Welcome to the Entropy Wiki - a cyber-utilitarian knowledge base for AI-assisted development.  Sections - Beads - Git-backed issue tracking with dependencies and persistent memory - Gastown - Agent orchestration and multi-agent workflows - Orchestration - Task coordination and execution patterns - Plugins - Claude Code plugin development - Prompt Bank - Reusable prompt templates and patterns - Skills Bank - Skill definitions for Claude Code - Tooling MCP - Model Context Protocol server development  Getting Started Browse the sections above to explore the documentation, or use the search bar to find specific topics.",
-    "url": "/home",
-    "category": "home"
+    "id": "skills-bank/best-practices",
+    "title": "Skill Best Practices",
+    "content": "Skill Authoring Best Practices Learn how to write effective Skills that Claude can discover and use successfully.  Core Principles  Concise is Key The context window is a public good. Your Skill shares the context window with: - The system prompt - Conversation history - Other Skills' metadata - Your actual request Default assumption: Claude is already very smart. Only add context Claude doesn't already have. Challenge each piece of information: - \"Does Claude really need this explanation?\" - \"Can I assume Claude knows this?\" - \"Does this paragraph justify its token cost?\" Good Example (50 tokens): python import pdfplumber with pdfplumber.open(\"file.pdf\") as pdf:     text = pdf.pages[0].extracttext() Bad Example (150 tokens): The concise version assumes Claude knows what PDFs are and how libraries work.  Set Appropriate Degrees of Freedom Match specificity to the task's fragility and variability. High freedom (text-based instructions): - Multiple approaches are valid - Decisions depend",
+    "url": "/skills-bank/best-practices",
+    "category": "skills-bank"
   },
   {
     "id": "lab",
@@ -133,24 +21,31 @@
     "category": "lab"
   },
   {
-    "id": "orchestration",
-    "title": "Orchestration",
-    "content": "Orchestration Orchestration is the art of coordinating AI agents to complete complex tasks autonomously. This is where you go from using AI to commanding AI.  What You'll Learn - What is Orchestration? - The fundamentals of multi-agent coordination - Frameworks - Production-grade orchestration systems (Gastown, Flywheel) - Memory - Persistent context across sessions (Beads) - Patterns - Workflow patterns like Ralph loops  Sections  Introduction Start here if you're new to orchestration. Learn what AI agents are, why coordination matters, and the key concepts.  Frameworks Multi-agent orchestration frameworks for scaling AI work: - Gastown - Industrial-strength multi-agent coordination - Flywheel - (Coming soon)  Memory Persistence and context recovery across sessions: - Beads - Issue tracking with dependencies and memory  Patterns Workflow patterns for autonomous execution: - Ralph Loop - Iterative loops until task complete  Key Concepts  Stop Hook Architecture Intercepts exit attempts ",
-    "url": "/orchestration",
+    "id": "orchestration/patterns/ralph-loop",
+    "title": "ralph-loop",
+    "content": "Ralph Loop Plugin Iterative development methodology based on continuous AI loops for self-correcting, autonomous task completion.  Overview Ralph Loop implements the \"Ralph Wiggum\" technique - a development pattern where Claude repeatedly receives the same prompt while seeing its own previous work, enabling iterative refinement until task completion. Core principle: The AI doesn't need its output fed back as input. It sees its own work in the files and git history, creating a self-referential improvement loop.  The Ralph Wiggum Technique Named after the Simpsons character, this technique embraces being \"deterministically bad in an undeterministic world\" - failures are predictable and can be systematically improved through prompt tuning.  Basic Loop Structure  How It Works 1. Same prompt, every iteration    - Claude receives identical instructions each time    - No modification between loops 2. Self-referential context    - Claude sees its previous work in files    - Reviews git history",
+    "url": "/orchestration/patterns/ralph-loop",
     "category": "orchestration"
   },
   {
-    "id": "orchestration/claude-code-multi-agent-workflow",
-    "title": "claude-code-multi-agent-workflow",
-    "content": "Beads + Claude Code: Multi-Agent Workflow Architecture > VER: 1.0.0 > STATUS: Production > LASTUPDATED: 2026-01-08  Question How should we coordinate terminal (bd CLI) and Claude Code when working through epics? One agent per epic, or multiple agents per epic? ---  Answer: Multiple Agents Per Epic (Dependency-Driven Parallelism) Beads is explicitly designed for multi-session AI agent workflows where: - Multiple Claude Code agents work in parallel on different tasks within the same epic - Terminal serves as coordination point for planning and monitoring - Dependencies define execution order, not manual sequencing - Context survives across sessions via git-backed persistence ---  Core Design Philosophy > \"Beads is a git-backed issue tracking system designed for AI agents to maintain context across conversation sessions, manage dependencies, and coordinate complex multi-session work.\" > > —   Key Principle: Persistence Over Optimization - When in doubt, track it in beads - Conversations a",
-    "url": "/orchestration/claude-code-multi-agent-workflow",
-    "category": "orchestration"
-  },
-  {
-    "id": "orchestration/frameworks",
+    "id": "orchestration/patterns",
     "title": "README",
-    "content": "Frameworks Multi-agent orchestration frameworks for scaling AI work to production levels.  Available Frameworks  Gastown Industrial-strength multi-agent coordination with the GUPP protocol. Massive scale, powerful capabilities, eats wallet.  Flywheel Coming soon - Docs will be added when available.  When to Use Frameworks | Scenario | Recommendation | |----------|----------------| | Simple tasks | No framework needed | | Medium complexity | Basic skill orchestration | | Large-scale projects | Gastown or similar | | Enterprise deployment | Full framework with monitoring |  Framework Characteristics Good orchestration frameworks provide: 1. Agent Registry - Track available agents and capabilities 2. Task Queue - Manage work distribution 3. State Management - Coordinate shared context 4. Error Recovery - Handle failures gracefully 5. Monitoring - Observe what's happening  Trade-offs Frameworks add power but also complexity: | Pro | Con | |-----|-----| | Handles massive scale | Learning cu",
-    "url": "/orchestration/frameworks",
+    "content": "Patterns Workflow patterns for autonomous AI execution. These are the building blocks you combine to create powerful orchestration.  Core Patterns  Ralph Loop The iterative loop pattern where an agent works → validates → repeats until task complete.  Pattern Categories  Execution Patterns How agents complete individual tasks: - Ralph Loop - Iterative refinement until success - TDD Loop - Write test → implement → pass - Validation Loop - Implement → validate → fix  Coordination Patterns How multiple agents work together: - Sequential - Agent A → Agent B → Agent C - Parallel - Agents A, B, C work simultaneously - Supervisor - One agent delegates to workers  Recovery Patterns How agents handle failures: - Retry - Try again with same approach - Escalate - Ask for human help - Pivot - Try different approach  When to Use Which | Situation | Pattern | |-----------|---------| | Self-correcting work | Ralph Loop | | Test-driven development | TDD Loop | | Complex multi-step task | Sequential | |",
+    "url": "/orchestration/patterns",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/ralph-technique",
+    "title": "Ralph Technique",
+    "content": "The Ralph Technique: Core Concepts and Economic Model  Core Primitive Ralph is fundamentally a simple bash loop that automates code generation: According to the technique, \"Ralph is a technique\" that operates by continuously feeding prompts to an LLM without tool-call limitations, iterating until objectives are met.  Key Characteristics Deterministic Defects: The technique is \"deterministically bad in an undeterministic world.\" This paradox means Ralph's failures are predictable and addressable through prompt refinement rather than tool selection. Skill-Based Operation: Ralph requires iterative tuning - like adjusting an instrument. When Ralph produces errors, the operator modifies prompts (analogous to adding guidance signs) rather than blaming the underlying tool.  Economic Validation The most striking data point: an engineer reportedly delivered a $50,000 contract project for approximately $297 in tool costs. This represents roughly 167x cost reduction, though this doesn't detail ti",
+    "url": "/orchestration/ralph-technique",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/ralph-enterprise",
+    "title": "Ralph Enterprise Implementation",
+    "content": "Ralph for Claude Code: Enterprise Implementation  Overview Ralph is a bash-based automation framework enabling continuous autonomous development cycles with Claude Code. It implements Geoffrey Huntley's technique to execute iterative improvements while maintaining safety guardrails.  Core Safety Architecture  Circuit Breaker Pattern The system monitors three failure indicators: \"3 loops with no progress, 5 loops with repeated errors, or output declining >70%.\" When triggered, the circuit opens automatically to prevent runaway execution.  Rate Limiting Ralph enforces hourly API call quotas (configurable, default 100 calls/hour) with countdown timers. It detects Claude's 5-hour usage ceiling and prompts for wait-or-exit decisions rather than entering retry loops.  Stagnation Detection The framework tracks consecutive test-focused iterations (threshold: 3 loops) and repetitive \"done\" signals (threshold: 2 occurrences). Multi-line error matching distinguishes genuine failures from false po",
+    "url": "/orchestration/ralph-enterprise",
     "category": "orchestration"
   },
   {
@@ -175,6 +70,13 @@
     "category": "orchestration"
   },
   {
+    "id": "orchestration/frameworks",
+    "title": "README",
+    "content": "Frameworks Multi-agent orchestration frameworks for scaling AI work to production levels.  Available Frameworks  Gastown Industrial-strength multi-agent coordination with the GUPP protocol. Massive scale, powerful capabilities, eats wallet.  Flywheel Coming soon - Docs will be added when available.  When to Use Frameworks | Scenario | Recommendation | |----------|----------------| | Simple tasks | No framework needed | | Medium complexity | Basic skill orchestration | | Large-scale projects | Gastown or similar | | Enterprise deployment | Full framework with monitoring |  Framework Characteristics Good orchestration frameworks provide: 1. Agent Registry - Track available agents and capabilities 2. Task Queue - Manage work distribution 3. State Management - Coordinate shared context 4. Error Recovery - Handle failures gracefully 5. Monitoring - Observe what's happening  Trade-offs Frameworks add power but also complexity: | Pro | Con | |-----|-----| | Handles massive scale | Learning cu",
+    "url": "/orchestration/frameworks",
+    "category": "orchestration"
+  },
+  {
     "id": "orchestration/frameworks/monitor",
     "title": "monitor",
     "content": "Rig Health Manual: Gauges and Dials Monitoring and Diagnostics for Gastown Rigs Version 1.0 | The Operator's Guide to Rig Telemetry ---  Overview A healthy Gastown rig is like a well-tuned engine: you can feel the rhythm of progress. Issues flow in, agents consume them, work gets completed, and the ledger drains. When the rig stalls or stutters, the gauges tell you why. This manual explains how to monitor your rig's health using the Beads Viewer (bv) and command-line tools. You'll learn to interpret the key metrics that indicate rig vitality: - PageRank - Task importance and unblocking priority - Critical Paths - Bottlenecks preventing progress - Cycle Detection - Logic loops causing infinite dependencies - Pulse - The rhythm indicating whether work is flowing or stalled Target Audience: Human Overseers, Mayors (AI coordinators), and system operators monitoring Gastown rigs. ---  Part I: The Beads Viewer (bv)  What is bv? The Beads Viewer is a terminal-based UI (TUI) for visualizing an",
@@ -189,31 +91,24 @@
     "category": "orchestration"
   },
   {
-    "id": "orchestration/memory",
-    "title": "README",
-    "content": "Memory AI agents forget everything when they restart. Memory systems solve this - they give agents persistent context across sessions.  Why Memory Matters Without memory, every new session starts from zero: - \"What was I working on?\" - \"What decisions did I make?\" - \"What's blocking me?\" With memory, agents can: - Pick up where they left off - Track multi-session projects - Coordinate with other agents  Beads: The Memory System Beads is a git-backed issue tracking system designed for AI agents. Think of it as \"GitHub Issues meets AI-native workflows.\"  Key Features - Persistent - Survives session restarts - Git-backed - History and sync built-in - Dependency-aware - Tracks blockers and dependencies - AI-optimized - Designed for agent workflows  Quick Example  Memory in Orchestration Memory enables key orchestration patterns:  Context Recovery After a session restart or compaction:  Work Distribution Agents can check what needs doing:  Progress Tracking Supervisors can monitor:  Learn M",
-    "url": "/orchestration/memory",
+    "id": "orchestration/ralph-plugin",
+    "title": "Ralph Wiggum Plugin",
+    "content": "Ralph Wiggum Plugin Summary  Overview The Ralph Wiggum plugin implements an iterative AI development loop technique in Claude Code. Named after the persistent Simpsons character, it enables autonomous, self-referential improvement cycles where Claude refines its work iteratively until completion.  Core Architecture: Stop Hook Key Mechanism: A Stop Hook () intercepts Claude's exit attempts and creates a self-referential feedback loop: Why it works: The prompt never changes, but previous work persists in files. Each iteration, Claude sees modified files and git history, enabling autonomous self-improvement by reading its own past work.  Commands  /ralph-loop Options: -  - Stop after N iterations (default: unlimited) -  - Phrase that signals completion (exact string matching)  /cancel-ralph Cancels the active loop immediately.  Verification and Forced Iteration Self-Correction Built-in: - Claude reads test failures, lint errors, and file states - Automatically fixes bugs without re-prompt",
+    "url": "/orchestration/ralph-plugin",
     "category": "orchestration"
   },
   {
-    "id": "orchestration/memory/beads",
-    "title": "beads",
-    "content": "Beads System Manual Version: 1.0.1 Purpose: Technical reference for AI agents managing persistent memory and multi-session work  Overview Beads is a git-backed issue tracking system designed for AI agents to maintain context across conversation sessions, manage dependencies, and coordinate complex multi-session work. This manual serves as training data for understanding beads workflows and memory management.  Core Concepts What is a Bead? - A persistent work item tracked across sessions - Stored in  directory as structured data - Version-controlled via git for history and collaboration - Supports dependencies, blocking relationships, and priority When to Use Beads vs TodoWrite: - Use Beads for:   - Multi-session work that spans conversations   - Tasks with blocking dependencies   - Strategic work requiring context recovery after compaction   - Discovered work that needs tracking beyond current session - Use TodoWrite for:   - Simple single-session execution   - Immediate task breakdown",
-    "url": "/orchestration/memory/beads",
+    "id": "orchestration/claude-code-multi-agent-workflow",
+    "title": "claude-code-multi-agent-workflow",
+    "content": "Beads + Claude Code: Multi-Agent Workflow Architecture > VER: 1.0.0 > STATUS: Production > LASTUPDATED: 2026-01-08  Question How should we coordinate terminal (bd CLI) and Claude Code when working through epics? One agent per epic, or multiple agents per epic? ---  Answer: Multiple Agents Per Epic (Dependency-Driven Parallelism) Beads is explicitly designed for multi-session AI agent workflows where: - Multiple Claude Code agents work in parallel on different tasks within the same epic - Terminal serves as coordination point for planning and monitoring - Dependencies define execution order, not manual sequencing - Context survives across sessions via git-backed persistence ---  Core Design Philosophy > \"Beads is a git-backed issue tracking system designed for AI agents to maintain context across conversation sessions, manage dependencies, and coordinate complex multi-session work.\" > > —   Key Principle: Persistence Over Optimization - When in doubt, track it in beads - Conversations a",
+    "url": "/orchestration/claude-code-multi-agent-workflow",
     "category": "orchestration"
   },
   {
-    "id": "orchestration/memory/cli-reference",
-    "title": "cli-reference",
-    "content": "CLI Reference: bd Command Complete reference for the  command-line interface.  Command Structure  Global Options Available for all commands: -  - Show help for command -  - Show beads version ---  Core Commands   Initialize beads in the current project. What it does: - Creates  directory structure - Initializes config and index files - Sets up git integration - Configures hooks When to use: - First-time setup in a new repository - After cloning a repo without beads ---   Create a new issue. Options: -  - Issue title (required) -  - Issue type: , , ,  (default: ) -  - Priority: 0-4 or P0-P4 (0=critical, 4=backlog, default: 2) -  - Assign to user -  - Issue description -  - Associate with epic Examples: Parallel Creation: For efficiency when creating multiple issues, use parallel subagents. ---   List issues with optional filters. Options: -  - Filter by status: , , ,  -  - Filter by type: , , ,  -  - Filter by priority: 0-4 or P0-P4 -  - Filter by assignee -  - Show issues in epic Examp",
-    "url": "/orchestration/memory/cli-reference",
-    "category": "orchestration"
-  },
-  {
-    "id": "orchestration/memory/dependencies",
-    "title": "dependencies",
-    "content": "Dependency Resolution  Overview Beads uses a dependency graph to model blocking relationships between issues. Dependencies enable: - Explicit ordering constraints (\"A must complete before B\") - Automatic priority surfacing via PageRank - Blocking/unblocking cascade detection - Strategic work sequencing  Dependency Model  Terminology Dependency Relationship: Graph Representation: - Nodes: Individual issues - Edges: Dependency relationships (directed) - Direction: Edge points from dependent to dependency   -  means \"A depends on B\" (B blocks A)  Dependency Commands Add Dependency: Remove Dependency: View Dependencies:  PageRank-Based Priority  Why PageRank? Traditional priority systems (P0-P4) are static and don't account for strategic impact. PageRank dynamically calculates importance based on how many issues a given issue unblocks. Core Insight: Issues that unblock many other issues should be prioritized, even if their nominal priority is lower.  How It Works 1. Graph Construction:    ",
-    "url": "/orchestration/memory/dependencies",
+    "id": "orchestration",
+    "title": "Orchestration",
+    "content": "Orchestration Orchestration is the art of coordinating AI agents to complete complex tasks autonomously. This is where you go from using AI to commanding AI.  What You'll Learn - What is Orchestration? - The fundamentals of multi-agent coordination - Frameworks - Production-grade orchestration systems (Gastown, Flywheel) - Memory - Persistent context across sessions (Beads) - Patterns - Workflow patterns like Ralph loops  Sections  Introduction Start here if you're new to orchestration. Learn what AI agents are, why coordination matters, and the key concepts.  Frameworks Multi-agent orchestration frameworks for scaling AI work: - Gastown - Industrial-strength multi-agent coordination - Flywheel - (Coming soon)  Memory Persistence and context recovery across sessions: - Beads - Issue tracking with dependencies and memory  Patterns Workflow patterns for autonomous execution: - Ralph Loop - Iterative loops until task complete  Key Concepts  Stop Hook Architecture Intercepts exit attempts ",
+    "url": "/orchestration",
     "category": "orchestration"
   },
   {
@@ -231,38 +126,31 @@
     "category": "orchestration"
   },
   {
-    "id": "orchestration/patterns",
+    "id": "orchestration/memory/dependencies",
+    "title": "dependencies",
+    "content": "Dependency Resolution  Overview Beads uses a dependency graph to model blocking relationships between issues. Dependencies enable: - Explicit ordering constraints (\"A must complete before B\") - Automatic priority surfacing via PageRank - Blocking/unblocking cascade detection - Strategic work sequencing  Dependency Model  Terminology Dependency Relationship: Graph Representation: - Nodes: Individual issues - Edges: Dependency relationships (directed) - Direction: Edge points from dependent to dependency   -  means \"A depends on B\" (B blocks A)  Dependency Commands Add Dependency: Remove Dependency: View Dependencies:  PageRank-Based Priority  Why PageRank? Traditional priority systems (P0-P4) are static and don't account for strategic impact. PageRank dynamically calculates importance based on how many issues a given issue unblocks. Core Insight: Issues that unblock many other issues should be prioritized, even if their nominal priority is lower.  How It Works 1. Graph Construction:    ",
+    "url": "/orchestration/memory/dependencies",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/memory/beads",
+    "title": "beads",
+    "content": "Beads System Manual Version: 1.0.1 Purpose: Technical reference for AI agents managing persistent memory and multi-session work  Overview Beads is a git-backed issue tracking system designed for AI agents to maintain context across conversation sessions, manage dependencies, and coordinate complex multi-session work. This manual serves as training data for understanding beads workflows and memory management.  Core Concepts What is a Bead? - A persistent work item tracked across sessions - Stored in  directory as structured data - Version-controlled via git for history and collaboration - Supports dependencies, blocking relationships, and priority When to Use Beads vs TodoWrite: - Use Beads for:   - Multi-session work that spans conversations   - Tasks with blocking dependencies   - Strategic work requiring context recovery after compaction   - Discovered work that needs tracking beyond current session - Use TodoWrite for:   - Simple single-session execution   - Immediate task breakdown",
+    "url": "/orchestration/memory/beads",
+    "category": "orchestration"
+  },
+  {
+    "id": "orchestration/memory",
     "title": "README",
-    "content": "Patterns Workflow patterns for autonomous AI execution. These are the building blocks you combine to create powerful orchestration.  Core Patterns  Ralph Loop The iterative loop pattern where an agent works → validates → repeats until task complete.  Pattern Categories  Execution Patterns How agents complete individual tasks: - Ralph Loop - Iterative refinement until success - TDD Loop - Write test → implement → pass - Validation Loop - Implement → validate → fix  Coordination Patterns How multiple agents work together: - Sequential - Agent A → Agent B → Agent C - Parallel - Agents A, B, C work simultaneously - Supervisor - One agent delegates to workers  Recovery Patterns How agents handle failures: - Retry - Try again with same approach - Escalate - Ask for human help - Pivot - Try different approach  When to Use Which | Situation | Pattern | |-----------|---------| | Self-correcting work | Ralph Loop | | Test-driven development | TDD Loop | | Complex multi-step task | Sequential | |",
-    "url": "/orchestration/patterns",
+    "content": "Memory AI agents forget everything when they restart. Memory systems solve this - they give agents persistent context across sessions.  Why Memory Matters Without memory, every new session starts from zero: - \"What was I working on?\" - \"What decisions did I make?\" - \"What's blocking me?\" With memory, agents can: - Pick up where they left off - Track multi-session projects - Coordinate with other agents  Beads: The Memory System Beads is a git-backed issue tracking system designed for AI agents. Think of it as \"GitHub Issues meets AI-native workflows.\"  Key Features - Persistent - Survives session restarts - Git-backed - History and sync built-in - Dependency-aware - Tracks blockers and dependencies - AI-optimized - Designed for agent workflows  Quick Example  Memory in Orchestration Memory enables key orchestration patterns:  Context Recovery After a session restart or compaction:  Work Distribution Agents can check what needs doing:  Progress Tracking Supervisors can monitor:  Learn M",
+    "url": "/orchestration/memory",
     "category": "orchestration"
   },
   {
-    "id": "orchestration/patterns/ralph-loop",
-    "title": "ralph-loop",
-    "content": "Ralph Loop Plugin Iterative development methodology based on continuous AI loops for self-correcting, autonomous task completion.  Overview Ralph Loop implements the \"Ralph Wiggum\" technique - a development pattern where Claude repeatedly receives the same prompt while seeing its own previous work, enabling iterative refinement until task completion. Core principle: The AI doesn't need its output fed back as input. It sees its own work in the files and git history, creating a self-referential improvement loop.  The Ralph Wiggum Technique Named after the Simpsons character, this technique embraces being \"deterministically bad in an undeterministic world\" - failures are predictable and can be systematically improved through prompt tuning.  Basic Loop Structure  How It Works 1. Same prompt, every iteration    - Claude receives identical instructions each time    - No modification between loops 2. Self-referential context    - Claude sees its previous work in files    - Reviews git history",
-    "url": "/orchestration/patterns/ralph-loop",
-    "category": "orchestration"
-  },
-  {
-    "id": "orchestration/ralph-enterprise",
-    "title": "Ralph Enterprise Implementation",
-    "content": "Ralph for Claude Code: Enterprise Implementation  Overview Ralph is a bash-based automation framework enabling continuous autonomous development cycles with Claude Code. It implements Geoffrey Huntley's technique to execute iterative improvements while maintaining safety guardrails.  Core Safety Architecture  Circuit Breaker Pattern The system monitors three failure indicators: \"3 loops with no progress, 5 loops with repeated errors, or output declining >70%.\" When triggered, the circuit opens automatically to prevent runaway execution.  Rate Limiting Ralph enforces hourly API call quotas (configurable, default 100 calls/hour) with countdown timers. It detects Claude's 5-hour usage ceiling and prompts for wait-or-exit decisions rather than entering retry loops.  Stagnation Detection The framework tracks consecutive test-focused iterations (threshold: 3 loops) and repetitive \"done\" signals (threshold: 2 occurrences). Multi-line error matching distinguishes genuine failures from false po",
-    "url": "/orchestration/ralph-enterprise",
-    "category": "orchestration"
-  },
-  {
-    "id": "orchestration/ralph-plugin",
-    "title": "Ralph Wiggum Plugin",
-    "content": "Ralph Wiggum Plugin Summary  Overview The Ralph Wiggum plugin implements an iterative AI development loop technique in Claude Code. Named after the persistent Simpsons character, it enables autonomous, self-referential improvement cycles where Claude refines its work iteratively until completion.  Core Architecture: Stop Hook Key Mechanism: A Stop Hook () intercepts Claude's exit attempts and creates a self-referential feedback loop: Why it works: The prompt never changes, but previous work persists in files. Each iteration, Claude sees modified files and git history, enabling autonomous self-improvement by reading its own past work.  Commands  /ralph-loop Options: -  - Stop after N iterations (default: unlimited) -  - Phrase that signals completion (exact string matching)  /cancel-ralph Cancels the active loop immediately.  Verification and Forced Iteration Self-Correction Built-in: - Claude reads test failures, lint errors, and file states - Automatically fixes bugs without re-prompt",
-    "url": "/orchestration/ralph-plugin",
-    "category": "orchestration"
-  },
-  {
-    "id": "orchestration/ralph-technique",
-    "title": "Ralph Technique",
-    "content": "The Ralph Technique: Core Concepts and Economic Model  Core Primitive Ralph is fundamentally a simple bash loop that automates code generation: According to the technique, \"Ralph is a technique\" that operates by continuously feeding prompts to an LLM without tool-call limitations, iterating until objectives are met.  Key Characteristics Deterministic Defects: The technique is \"deterministically bad in an undeterministic world.\" This paradox means Ralph's failures are predictable and addressable through prompt refinement rather than tool selection. Skill-Based Operation: Ralph requires iterative tuning - like adjusting an instrument. When Ralph produces errors, the operator modifies prompts (analogous to adding guidance signs) rather than blaming the underlying tool.  Economic Validation The most striking data point: an engineer reportedly delivered a $50,000 contract project for approximately $297 in tool costs. This represents roughly 167x cost reduction, though this doesn't detail ti",
-    "url": "/orchestration/ralph-technique",
+    "id": "orchestration/memory/cli-reference",
+    "title": "cli-reference",
+    "content": "CLI Reference: bd Command Complete reference for the  command-line interface.  Command Structure  Global Options Available for all commands: -  - Show help for command -  - Show beads version ---  Core Commands   Initialize beads in the current project. What it does: - Creates  directory structure - Initializes config and index files - Sets up git integration - Configures hooks When to use: - First-time setup in a new repository - After cloning a repo without beads ---   Create a new issue. Options: -  - Issue title (required) -  - Issue type: , , ,  (default: ) -  - Priority: 0-4 or P0-P4 (0=critical, 4=backlog, default: 2) -  - Assign to user -  - Issue description -  - Associate with epic Examples: Parallel Creation: For efficiency when creating multiple issues, use parallel subagents. ---   List issues with optional filters. Options: -  - Filter by status: , , ,  -  - Filter by type: , , ,  -  - Filter by priority: 0-4 or P0-P4 -  - Filter by assignee -  - Show issues in epic Examp",
+    "url": "/orchestration/memory/cli-reference",
     "category": "orchestration"
   },
   {
@@ -273,18 +161,130 @@
     "category": "orchestration"
   },
   {
-    "id": "skills-bank/best-practices",
-    "title": "Skill Best Practices",
-    "content": "Skill Authoring Best Practices Learn how to write effective Skills that Claude can discover and use successfully.  Core Principles  Concise is Key The context window is a public good. Your Skill shares the context window with: - The system prompt - Conversation history - Other Skills' metadata - Your actual request Default assumption: Claude is already very smart. Only add context Claude doesn't already have. Challenge each piece of information: - \"Does Claude really need this explanation?\" - \"Can I assume Claude knows this?\" - \"Does this paragraph justify its token cost?\" Good Example (50 tokens): python import pdfplumber with pdfplumber.open(\"file.pdf\") as pdf:     text = pdf.pages[0].extracttext() Bad Example (150 tokens): The concise version assumes Claude knows what PDFs are and how libraries work.  Set Appropriate Degrees of Freedom Match specificity to the task's fragility and variability. High freedom (text-based instructions): - Multiple approaches are valid - Decisions depend",
-    "url": "/skills-bank/best-practices",
-    "category": "skills-bank"
+    "id": "claude-code/core-concepts",
+    "title": "core-concepts",
+    "content": "Core Concepts Claude Code's power comes from four building blocks: Skills, Hooks, Commands, and Agents. Master these to become a true Droid overlord.  Skills Skills are reusable workflows you invoke with slash commands.  Creating Skills Skills live in  as markdown files:  Why Skills Matter - Consistency - Same workflow every time - Reusability - Define once, use everywhere - Shareability - Check into git, share with team  Hooks Hooks run code in response to events. They're how you automate Claude Code.  Hook Types | Hook | When it Fires | |------|---------------| |  | Before Claude uses a tool | |  | After a tool completes | |  | When Claude starts | |  | When Claude finishes |  Example Hook  Commands Commands are built-in actions you can invoke: | Command | What it Does | |---------|--------------| |  | Show available commands | |  | Clear conversation | |  | Compress context | |  | Enter planning mode |  Agents (Sub-agents) Claude Code can spawn specialized sub-agents for parallel wo",
+    "url": "/claude-code/core-concepts",
+    "category": "claude-code"
   },
   {
-    "id": "skills-bank/overview",
-    "title": "Skills Overview",
-    "content": "Agent Skills Create, manage, and share Skills to extend Claude's capabilities in Claude Code.  What is a Skill? A Skill is a markdown file that teaches Claude how to do something specific: reviewing PRs using your team's standards, generating commit messages in your preferred format, or querying your company's database schema. When you ask Claude something that matches a Skill's purpose, Claude automatically applies it.  How Skills Work Skills are model-invoked: Claude decides which Skills to use based on your request. You don't need to explicitly call a Skill. Claude automatically applies relevant Skills when your request matches their description. When you send a request, Claude follows these steps: 1. Discovery: At startup, Claude loads only the name and description of each available Skill 2. Activation: When your request matches a Skill's description, Claude asks to use the Skill 3. Execution: Claude follows the Skill's instructions, loading referenced files or running bundled scri",
-    "url": "/skills-bank/overview",
-    "category": "skills-bank"
+    "id": "claude-code/plugins/github",
+    "title": "github",
+    "content": "GitHub CLI Integration Native GitHub operations through the  command for pull requests, issues, code review, and repository management.  Overview GitHub CLI () integration enables Claude Code to interact directly with GitHub repositories through the Bash tool. This provides: - Pull request creation - Create PRs with comprehensive descriptions - Issue management - View, create, and update issues - Code review - Comment on PRs, view diffs, check status - Repository operations - Clone, fork, view details - Release management - Create releases, view tags - GitHub Actions - View workflow runs, check CI status  Installation  1. Install GitHub CLI macOS: Linux: Windows:  2. Authenticate Follow the prompts to authenticate via browser or token.  3. Verify Installation  Core Commands  Pull Requests  Create PR  View PRs  PR Comments  Issues  Create Issue  Manage Issues  Repository  Clone & Fork  Releases  Workflows  View CI Status  Integration with Git Workflow The GitHub CLI enhances the git-wor",
+    "url": "/claude-code/plugins/github",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/plugins/playwright",
+    "title": "playwright",
+    "content": "Playwright Plugin Browser automation for visual testing, functional validation, and layout debugging via Model Context Protocol (MCP) integration.  Overview The Playwright plugin provides a complete browser automation toolkit through MCP, enabling: - Visual regression testing - Screenshot comparisons before/after changes - Functional validation - Verify user interactions and flows - Layout debugging - Inspect CSS, DOM structure, and rendering issues - Responsive testing - Test across different viewport sizes - Accessibility checks - Validate ARIA attributes and semantics  Installation & Setup  1. Configure MCP Server Add to  in project root:  2. Restart Claude Code The MCP server loads on startup. Restart to activate Playwright tools.  3. Verify Installation Check that Playwright tools are available: -  - Navigate to URL -  - Capture accessibility snapshot -  - Take screenshots -  - Click elements -  - Run JavaScript in page context  Available Tools  Navigation -  - Load a page -  - Go",
+    "url": "/claude-code/plugins/playwright",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/plugins",
+    "title": "README",
+    "content": "Plugins Plugins extend Claude Code with specialized capabilities via MCP (Model Context Protocol) servers.  Available Plugins  Playwright Browser automation for visual testing, functional validation, and layout debugging.  GitHub CLI Native GitHub operations - PRs, issues, code review directly from Claude Code.  Frontend Design Production-grade UI creation with bold aesthetic direction.  Wiki Ingest Content capture and wiki entry creation.  How Plugins Work Plugins are MCP servers that give Claude new tools: Once configured, Claude can use browser automation:  Why MCP Matters MCP is Claude's extension system. It lets you: - Add new capabilities without modifying Claude - Share plugins across projects - Build custom tools for your workflow Think of MCP servers as \"apps\" for Claude Code.",
+    "url": "/claude-code/plugins",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/plugins/wiki-ingest",
+    "title": "Wiki Ingest",
+    "content": "Wiki Ingest Ingest external content (URLs or text) into the entropy-wiki with automatic classification and routing.  Usage  How It Works  Section Classification | Section | Content Types | |---------|--------------| |  | Skills, hooks, agents, plugins, MCP | |  | Multi-agent, coordination, frameworks, memory, patterns |  Decision Logic Enhance existing when: - Content has >60% overlap with existing entry - Adds details, examples, or updates to existing topic Create new when: - Topic fits section but no similar entry exists - Distinct subtopic warranting standalone entry Stage when: - Content doesn't clearly fit any section - Needs manual review and organization  Output Format New entries include frontmatter:  Post-Ingestion After creating new entries:  See Also - Plugins Overview - All Claude Code plugins - Core Concepts - Skills, hooks, commands",
+    "url": "/claude-code/plugins/wiki-ingest",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/plugins/frontend-design",
+    "title": "frontend-design",
+    "content": "Frontend Design Plugin Production-grade interface creation with bold aesthetic direction that avoids generic AI patterns.  Overview The Frontend Design plugin guides creation of distinctive, memorable user interfaces with exceptional attention to aesthetic details and creative choices. It produces real working code (HTML/CSS/JS, React, Vue, etc.) that is: - Visually striking - Memorable and distinctive - Production-grade - Functional and performant - Cohesive - Clear aesthetic point-of-view - Refined - Meticulously detailed  Core Philosophy Avoid \"AI slop\" - Generic aesthetics that scream \"made by AI\": - ❌ Overused fonts (Inter, Roboto, Arial, system fonts) - ❌ Cliched colors (purple gradients on white backgrounds) - ❌ Predictable layouts and component patterns - ❌ Cookie-cutter design lacking context-specific character Embrace bold direction - Commit to a clear conceptual vision: - ✅ Distinctive font pairings - ✅ Cohesive color systems with personality - ✅ Unexpected layouts and compo",
+    "url": "/claude-code/plugins/frontend-design",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/introduction",
+    "title": "introduction",
+    "content": "Introduction to Claude Code Claude Code is Anthropic's terminal-based AI coding assistant. It's not just another chatbot - it's a full development environment that can read, write, and execute code autonomously.  Why Claude Code? Claude Code stands out from other AI coding tools because it: - Runs in your terminal - Native CLI experience, not a web app - Has file system access - Reads and writes files directly - Executes commands - Runs tests, builds, and git operations - Supports MCP - Model Context Protocol for extending capabilities - Skills & Hooks - Customize behavior with reusable patterns  Core Architecture  Getting Started 1. Install Claude Code from Anthropic 2. Run  in your project directory 3. Start giving instructions That's it. Claude Code will read your codebase and help you build.  Next Steps - Agent Comparison - See how Claude Code compares to Codex and Amp - Core Concepts - Learn about skills, hooks, and commands - Plugins - Extend with browser automation and more",
+    "url": "/claude-code/introduction",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code",
+    "title": "README",
+    "content": "Claude Code Your command center for AI-assisted development. Claude Code is the terminal-based AI coding agent that turns you into a Droid overlord.  What You'll Learn - Introduction - What Claude Code is and why it's the focus - Agent Comparison - Claude Code vs Codex vs Amp - Core Concepts - Skills, hooks, commands, and agents - Plugins - Extend Claude Code with MCP servers  Quick Links - Introduction - Start here - Agent Comparison - Compare coding agents - Core Concepts - Understand the building blocks - Plugins - Browser automation, GitHub CLI, and more",
+    "url": "/claude-code",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/quick-start",
+    "title": "quick-start",
+    "content": "Quick Start Guide Get from zero to commanding AI agents in 5 minutes.  Step 1: Install Claude Code  Step 2: Start a Session Navigate to your project and run: Claude Code will: 1. Read your codebase 2. Start an interactive session 3. Wait for your instructions  Step 3: Give Your First Command Try something simple: Claude will analyze your project and give you an overview.  Step 4: Make Changes Now try making a change: Watch as Claude: 1. Analyzes what documentation would be useful 2. Creates the file 3. Shows you the result  Step 5: Use a Skill Skills are pre-built workflows. Try the commit skill: This will: 1. Check git status 2. Stage appropriate changes 3. Generate a commit message 4. Create the commit (with your approval)  What's Next? You just commanded an AI agent to do your bidding. Here's where to go deeper:  Learn Claude Code Fundamentals - Introduction - What Claude Code is - Core Concepts - Skills, hooks, commands, agents - Plugins - Extend with MCP servers  Understand Orches",
+    "url": "/claude-code/quick-start",
+    "category": "claude-code"
+  },
+  {
+    "id": "claude-code/agent-comparison",
+    "title": "agent-comparison",
+    "content": "Agent Comparison Claude Code, Codex, and Amp are all AI coding agents that work similarly. Understanding their differences helps you choose the right tool - or use them all strategically.  The Big Picture These agents share the same paradigm: - Terminal/CLI-based interaction - File system access - Command execution - Agentic loops (work until task complete) The main differences? Provider, pricing, and specific capabilities.  Why Multiple Agents? Smart developers use multiple agents because: 1. Cost optimization - Spread usage across different pricing tiers 2. Capability matching - Some tasks suit certain models better 3. Availability - Fallback when one service is down 4. Plan limits - Work around monthly caps  Comparison Table | Feature | Claude Code | Codex (OpenAI) | Amp | |---------|-------------|----------------|-----| | Provider | Anthropic | OpenAI | Sourcegraph | | Model | Claude | GPT-4 | Various | | Skills system | Yes | No | No | | Hooks (events) | Yes | Limited | No | | MCP",
+    "url": "/claude-code/agent-comparison",
+    "category": "claude-code"
+  },
+  {
+    "id": "content-mapping",
+    "title": "Content Mapping",
+    "content": "Content Mapping: docs/ to wiki/ This document maps all files in  to their target destinations in .  Summary - Total files in docs/: 35 - Files to migrate: 35 - Target sections: 7 (context, orchestration, plugins, skills-bank, tooling-mcp, beads, gastown)  Mapping by Source Directory  /docs/agent-knowledge-base/ | Source | Target | Status | |--------|--------|--------| | INDEX.md | wiki/home.md (merged) | Overlap | | claude-code-essentials.md | wiki/getting-started.md | Novel |  /docs/agent-knowledge-base/context/ | Source | Target | Status | |--------|--------|--------| | agentsmd-spec.md | wiki/context/agents-md-spec.md | Novel | | anthropic-context-engineering.md | wiki/context/context-engineering.md | Novel | | github-par.md | wiki/context/parallel-agents.md | Novel | | google-adk.md | wiki/context/google-adk.md | Novel | | humanlayer-claude-md.md | wiki/context/claude-md-patterns.md | Novel |  /docs/agent-knowledge-base/coordination/ | Source | Target | Status | |--------|--------|",
+    "url": "/content-mapping",
+    "category": "content-mapping"
+  },
+  {
+    "id": "home",
+    "title": "Entropy Wiki",
+    "content": "Entropy Wiki Welcome to the Entropy Wiki - a cyber-utilitarian knowledge base for AI-assisted development.  Sections - Beads - Git-backed issue tracking with dependencies and persistent memory - Gastown - Agent orchestration and multi-agent workflows - Orchestration - Task coordination and execution patterns - Plugins - Claude Code plugin development - Prompt Bank - Reusable prompt templates and patterns - Skills Bank - Skill definitions for Claude Code - Tooling MCP - Model Context Protocol server development  Getting Started Browse the sections above to explore the documentation, or use the search bar to find specific topics.",
+    "url": "/home",
+    "category": "home"
+  },
+  {
+    "id": "context/claude-md-patterns",
+    "title": "CLAUDE.md Patterns",
+    "content": "CLAUDE.md Specification Summary  Recommended Length CLAUDE.md files should be under 300 lines, with shorter being preferable. HumanLayer's own root file is less than 60 lines.  What to Include The file should cover three essential areas: 1. WHAT - Technical stack and project structure. \"Give Claude a map of the codebase,\" particularly important for monorepos where you clarify apps, shared packages, and their purposes. 2. WHY - Project purpose and the function of different components so Claude understands the system's intent. 3. HOW - Practical workflow information: build tools (e.g.,  vs ), test execution, verification methods, and compilation steps needed for meaningful work.  What to Avoid The article explicitly recommends against: - Code style guidelines - \"Never send an LLM to do a linter's job.\" Use deterministic linters instead. - Excessive instructions - Frontier LLMs can reliably follow \"~150-200 instructions.\" Since Claude Code's system prompt already contains ~50 instructions",
+    "url": "/context/claude-md-patterns",
+    "category": "context"
+  },
+  {
+    "id": "context/parallel-agents",
+    "title": "Parallel Worktree Management",
+    "content": "Par: Parallel Worktree and Session Manager par is a CLI tool that streamlines concurrent development workflows by combining Git worktrees with tmux session management. It enables developers - particularly those working with AI coding assistants - to manage multiple isolated development environments globally.  Core Functionality The tool creates isolated workspaces where each session gets its own directory, Git branch, and tmux session. As the documentation states, it's designed to solve a fundamental problem: \"traditional Git branch switching is not ideal for handling multiple concurrent workstreams on the same repository.\"  Key Capabilities - Global session management: Create, list, and access development contexts from anywhere on your system - Multi-repository workspaces: Coordinate changes across multiple repositories with synchronized branch naming - Remote command execution: Send commands to specific sessions or broadcast to all contexts simultaneously - IDE integration: Auto-gene",
+    "url": "/context/parallel-agents",
+    "category": "context"
+  },
+  {
+    "id": "context/agents-md-spec",
+    "title": "AGENTS.md Specification",
+    "content": "AGENTS.md Specification Summary  Core Definition AGENTS.md is a vendor-neutral markdown format designed to guide AI coding agents. As stated on the official site: \"A simple, open format for guiding coding agents, used by over 60k open-source projects.\"  Schema and Structure Rather than enforcing a rigid schema, AGENTS.md intentionally remains flexible. The specification explicitly states: \"AGENTS.md is just standard Markdown. Use any headings you like; the agent simply parses the text you provide.\" Common sections include: - Project overview - Build and test commands - Code style guidelines - Testing instructions - Security considerations - PR/commit message guidelines  Agent Personas and Boundaries The format doesn't define specific agent personas but rather creates \"a dedicated, predictable place to provide the context and instructions\" for any AI coding agent to operate effectively. Key boundary principle: \"The closest AGENTS.md to the edited file wins; explicit user chat prompts ov",
+    "url": "/context/agents-md-spec",
+    "category": "context"
+  },
+  {
+    "id": "context/context-engineering",
+    "title": "Context Engineering",
+    "content": "Context Engineering for AI Agents  Context Engineering vs. Prompt Engineering Prompt engineering focuses on crafting effective LLM instructions, particularly system prompts. Context engineering represents the broader evolution - managing the entire token composition during inference, including system instructions, tools, external data, and message history across multiple turns. As Anthropic explains: \"context engineering is iterative and the curation phase happens each time we decide what to pass to the model.\"  Context Rot Phenomenon LLMs experience performance degradation as context length increases. Research shows that \"as the number of tokens in the context window increases, the model's ability to accurately recall information from that context decreases.\" This stems from transformer architecture's n-squared pairwise token relationships. Models trained on shorter sequences have fewer specialized parameters for long-range dependencies, creating a performance gradient rather than a h",
+    "url": "/context/context-engineering",
+    "category": "context"
+  },
+  {
+    "id": "context",
+    "title": "Context",
+    "content": "Context Documentation for managing context windows and optimizing information flow in AI-assisted development.  Topics  Context Engineering - Context Engineering - Managing token composition during inference - CLAUDE.md Patterns - Best practices for writing effective CLAUDE.md files - AGENTS.md Specification - Vendor-neutral format for guiding AI agents  Multi-Agent Architecture - Google ADK Architecture - Core concepts from Google's Agent Development Kit - Parallel Worktree Management - Par CLI for concurrent development workflows  Key Concepts  Context Rot LLMs experience performance degradation as context length increases. The more tokens in the context window, the harder it becomes for the model to accurately recall and utilize information.  Context Compaction Summarizing conversations nearing capacity limits to preserve critical decisions while discarding redundant outputs.  Progressive Disclosure Loading files and information only when needed, rather than front-loading everything",
+    "url": "/context",
+    "category": "context"
+  },
+  {
+    "id": "context/google-adk",
+    "title": "Google ADK Architecture",
+    "content": "Google ADK: Core Architectural Concepts  1. Compiled View Concept Google's ADK treats context as a derived representation rather than mutable storage. The framework separates concerns into layers: - Sources: Sessions, memory, and artifacts contain full structured state - Compiler pipeline: Flows and processors transform that state through ordered passes - Output: Working context is the ephemeral projection sent to the LLM As the article states: \"Context is a compiled view over a richer stateful system.\" This shift reframes context management from prompt engineering into systems architecture, where you ask questions about intermediate representations, compaction points, and transformation observability.  2. Handle Pattern for Artifacts Rather than embedding large data (5MB CSVs, PDFs, JSON responses) directly in prompts, ADK uses indirect references: - Large objects live in an  as named, versioned resources - Agents see lightweight summaries by default - The  allows agents to fetch full",
+    "url": "/context/google-adk",
+    "category": "context"
   },
   {
     "id": "tooling-mcp/claude-mcp",

@@ -2,6 +2,15 @@ import FlexSearch from 'flexsearch'
 import { getAllDocs } from '../mdx/get-all-docs'
 import type { SearchIndex, SearchResult } from './types'
 
+// Cache for search index to avoid rebuilding on every call
+let cachedSearchIndex: SearchIndex[] | null = null
+let cacheTimestamp: number = 0
+const CACHE_TTL_MS = 60000 // 1 minute cache
+
+// Search configuration constants
+const MAX_CONTENT_LENGTH = 1000 // Limit content length for performance
+const FLEX_SEARCH_CACHE_SIZE = 100
+
 /**
  * Build a search index from all documentation
  */
@@ -25,7 +34,7 @@ export function buildSearchIndex(): SearchIndex[] {
     searchIndex.push({
       id: doc.slug,
       title: doc.frontMatter.title,
-      content: cleanContent.slice(0, 1000), // Limit content length for performance
+      content: cleanContent.slice(0, MAX_CONTENT_LENGTH),
       url: `/${doc.slug}`,
       category,
     })
@@ -45,7 +54,7 @@ export function createFlexSearchIndex() {
       store: ['title', 'url', 'category'],
     },
     tokenize: 'forward',
-    cache: 100,
+    cache: FLEX_SEARCH_CACHE_SIZE,
   })
 
   const searchData = buildSearchIndex()
@@ -61,13 +70,25 @@ export function createFlexSearchIndex() {
  * Export search index to JSON (for client-side search)
  */
 export function exportSearchIndex(): string {
-  const searchIndex = buildSearchIndex()
+  const searchIndex = getSearchData()
   return JSON.stringify(searchIndex)
 }
 
 /**
  * Get search data for pre-building
+ * This is the canonical function - other functions should use this
+ * Uses caching to avoid rebuilding the index on every call
  */
 export function getSearchData(): SearchIndex[] {
-  return buildSearchIndex()
+  const now = Date.now()
+
+  // Return cached version if still valid
+  if (cachedSearchIndex && (now - cacheTimestamp) < CACHE_TTL_MS) {
+    return cachedSearchIndex
+  }
+
+  // Rebuild cache
+  cachedSearchIndex = buildSearchIndex()
+  cacheTimestamp = now
+  return cachedSearchIndex
 }

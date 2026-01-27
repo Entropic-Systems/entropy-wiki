@@ -50,12 +50,18 @@ function buildSearchIndex() {
 
       // Generate slug from file path
       const relativePath = path.relative(DOCS_DIR, file);
-      const slug = relativePath
+      let slug = relativePath
         .replace(/\.(md|mdx)$/, '')
         .replace(/\\/g, '/')
         .replace(/\/README$/i, '')
         .replace(/^README$/i, '')
         .toLowerCase();
+
+      // Skip root-level README (would result in empty slug)
+      if (!slug) {
+        console.log(`⏭ Skipping root README (no slug)`);
+        continue;
+      }
 
       // Extract category (first segment)
       const category = slug.split('/')[0];
