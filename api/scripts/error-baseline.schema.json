@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "error-baseline.schema.json",
+  "title": "Error Baseline Configuration",
+  "description": "Schema for error frequency baseline tracking and regression detection",
+  "type": "object",
+  "required": ["version", "updatedAt", "thresholds", "errorPatterns"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description"
+    },
+    "thresholds": {
+      "type": "object",
+      "description": "Frequency category thresholds",
+      "properties": {
+        "rare": { "$ref": "#/$defs/threshold" },
+        "occasional": { "$ref": "#/$defs/threshold" },
+        "frequent": { "$ref": "#/$defs/threshold" },
+        "constant": { "$ref": "#/$defs/threshold" }
+      },
+      "required": ["rare", "occasional", "frequent", "constant"]
+    },
+    "regressionRules": {
+      "type": "object",
+      "description": "Rules for detecting regressions",
+      "properties": {
+        "significantIncrease": {
+          "type": "object",
+          "properties": {
+            "percentageThreshold": { "type": "number" },
+            "absoluteThreshold": { "type": "integer" },
+            "description": { "type": "string" }
+          }
+        },
+        "newError": {
+          "type": "object",
+          "properties": {
+            "previousCount": { "type": "integer" },
+            "currentMin": { "type": "integer" },
+            "description": { "type": "string" }
+          }
+        },
+        "frequencyEscalation": {
+          "type": "object",
+          "properties": {
+            "fromCategory": { "type": "string" },
+            "toCategory": { "type": "string" },
+            "description": { "type": "string" }
+          }
+        }
+      }
+    },
+    "errorPatterns": {
+      "type": "object",
+      "description": "Map of error pattern signatures to their historical counts",
+      "additionalProperties": {
+        "$ref": "#/$defs/errorPatternEntry"
+      }
+    },
+    "history": {
+      "type": "array",
+      "description": "Historical snapshots for trend analysis",
+      "items": {
+        "$ref": "#/$defs/historyEntry"
+      }
+    }
+  },
+  "$defs": {
+    "threshold": {
+      "type": "object",
+      "properties": {
+        "minCount": { "type": ["integer", "null"] },
+        "maxCount": { "type": ["integer", "null"] },
+        "description": { "type": "string" }
+      },
+      "required": ["minCount", "maxCount"]
+    },
+    "errorPatternEntry": {
+      "type": "object",
+      "properties": {
+        "pattern": { "type": "string", "description": "Normalized error message pattern" },
+        "count": { "type": "integer", "description": "Current count" },
+        "category": { "type": "string", "enum": ["rare", "occasional", "frequent", "constant"] },
+        "collector": { "type": "string", "description": "Which collector reported this" },
+        "firstSeen": { "type": "string", "format": "date-time" },
+        "lastSeen": { "type": "string", "format": "date-time" },
+        "trend": { "type": "string", "enum": ["increasing", "stable", "decreasing"] }
+      },
+      "required": ["pattern", "count", "category"]
+    },
+    "historyEntry": {
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "totalErrors": { "type": "integer" },
+        "criticalErrors": { "type": "integer" },
+        "patterns": { "type": "integer", "description": "Number of unique patterns" }
+      },
+      "required": ["timestamp", "totalErrors", "patterns"]
+    }
+  }
+}
