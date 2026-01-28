@@ -5,6 +5,8 @@ import rateLimit from 'express-rate-limit';
 import { pagesRouter } from './routes/pages.js';
 import { adminRouter } from './routes/admin.js';
 import { ingestRouter } from './routes/ingest.js';
+import searchRouter from './routes/search.js';
+import categoriesRouter from './routes/categories.js';
 import { closePool, query } from './db/client.js';
 import { startProcessor, stopProcessor } from './services/processor.js';
 import { getAdminPasswordHash, comparePassword } from './utils/auth.js';
@@ -149,6 +151,8 @@ app.post('/admin/migrate', async (req: Request, res: Response) => {
 
 // Public routes
 app.use('/pages', pagesRouter);
+app.use('/search', searchRouter);
+app.use('/categories', categoriesRouter);
 
 // Admin routes (with auth middleware)
 app.use('/admin', adminRouter);
