@@ -15,7 +15,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
-import { CollectorError, CollectorResult } from './collectors/types.js';
+import { CollectorError, CollectorResult, generatePatternId } from './collectors/types.js';
 
 // Frequency classifications
 export type ErrorFrequency = 'rare' | 'occasional' | 'frequent' | 'constant';
@@ -168,19 +168,6 @@ export class ErrorBaselineService {
       .substring(0, 200); // Limit pattern length
   }
 
-  /**
-   * Generate pattern ID from pattern string
-   */
-  private generatePatternId(pattern: string): string {
-    // Simple hash function for pattern ID
-    let hash = 0;
-    for (let i = 0; i < pattern.length; i++) {
-      const char = pattern.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return `err-${Math.abs(hash).toString(36)}`;
-  }
 
   /**
    * Calculate frequency classification from daily counts
@@ -226,7 +213,7 @@ export class ErrorBaselineService {
     for (const result of results) {
       for (const error of result.errors) {
         const pattern = this.normalizeToPattern(error.message);
-        const patternId = this.generatePatternId(pattern);
+        const patternId = generatePatternId(pattern);
 
         if (!errorsByPattern.has(patternId)) {
           errorsByPattern.set(patternId, {
@@ -330,11 +317,20 @@ export class ErrorBaselineService {
       ? olderDays.reduce((sum, d) => sum + d.count, 0) / olderDays.length
       : 0;
 
-    const increasePercent = olderAvg > 0
-      ? ((recentAvg - olderAvg) / olderAvg) * 100
-      : (recentAvg > 0 ? 100 : 0);
+    // Calculate increase percentage
+    // Only flag regression if we have sufficient historical data (at least 3 days of older data)
+    // This prevents false positives for new patterns
+    let increasePercent = 0;
+    if (olderAvg > 0) {
+      increasePercent = ((recentAvg - olderAvg) / olderAvg) * 100;
+    } else if (olderDays.length >= 3 && recentAvg > 0) {
+      // Had historical data but it was all zeros, and now we have errors
+      increasePercent = 100;
+    }
+    // If olderDays.length < 3, increasePercent stays 0 (insufficient data for regression)
 
-    const isRegression = increasePercent >= this.baseline.config.regressionThreshold;
+    const isRegression = increasePercent >= this.baseline.config.regressionThreshold &&
+      olderDays.length >= 3; // Require minimum historical data for regression detection
 
     let severity: 'minor' | 'moderate' | 'major' = 'minor';
     if (increasePercent >= 200) severity = 'major';
@@ -515,11 +511,16 @@ export class ErrorBaselineService {
    * Save baseline to file
    */
   save(): void {
-    const dir = dirname(this.baselinePath);
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
+    try {
+      const dir = dirname(this.baselinePath);
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+      }
+      writeFileSync(this.baselinePath, JSON.stringify(this.baseline, null, 2));
+    } catch (error) {
+      console.error('Failed to save error baseline:', error instanceof Error ? error.message : String(error));
+      // Don't throw - allow the service to continue operating with in-memory state
     }
-    writeFileSync(this.baselinePath, JSON.stringify(this.baseline, null, 2));
   }
 
   /**

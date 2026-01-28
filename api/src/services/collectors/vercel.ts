@@ -23,6 +23,7 @@ import {
   DEFAULT_COLLECTOR_CONFIG,
   generateErrorId,
   determineHealthStatus,
+  sanitizeError,
 } from './types.js';
 
 // Vercel API endpoint
@@ -291,7 +292,7 @@ export class VercelCollector implements Collector {
           timestamp: collectedAt,
           severity: 'error',
           category: 'connection',
-          message: `Failed to fetch Vercel project: ${err instanceof Error ? err.message : String(err)}`,
+          message: `Failed to fetch Vercel project: ${sanitizeError(err instanceof Error ? err.message : String(err))}`,
           source: `${this.name}:project`,
         });
 
@@ -381,8 +382,16 @@ export class VercelCollector implements Collector {
                 });
               }
             }
-          } catch {
-            // Events fetch failed, continue without detailed logs
+          } catch (eventErr) {
+            // Events fetch failed, add warning and continue
+            errors.push({
+              id: generateErrorId(this.name),
+              timestamp: collectedAt,
+              severity: 'warning',
+              category: 'configuration',
+              message: `Failed to fetch deployment events: ${sanitizeError(eventErr instanceof Error ? eventErr.message : String(eventErr))}`,
+              source: `${this.name}:events`,
+            });
           }
         }
 
@@ -455,7 +464,7 @@ export class VercelCollector implements Collector {
         timestamp: collectedAt,
         severity: 'critical',
         category: 'connection',
-        message: `Failed to fetch Vercel deployments: ${err instanceof Error ? err.message : String(err)}`,
+        message: `Failed to fetch Vercel deployments: ${sanitizeError(err instanceof Error ? err.message : String(err))}`,
         source: `${this.name}:deployments`,
       });
       criticalErrors++;

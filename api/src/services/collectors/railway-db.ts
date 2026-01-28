@@ -429,7 +429,9 @@ export class RailwayDbCollector implements Collector {
     } finally {
       // Clean up connection pool
       if (pool) {
-        await pool.end().catch(() => {});
+        await pool.end().catch((err) => {
+          console.error('Failed to close database pool:', err instanceof Error ? err.message : String(err));
+        });
       }
     }
 

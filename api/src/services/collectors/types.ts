@@ -119,3 +119,47 @@ export function determineHealthStatus(
   if (totalErrors > 0 || successRate < 0.95) return 'degraded';
   return 'healthy';
 }
+
+/**
+ * Sanitize error messages to prevent credential leakage.
+ * Removes/redacts:
+ * - Bearer tokens (Authorization headers)
+ * - Database connection strings with passwords
+ * - API keys and tokens in various formats
+ * - Password query parameters
+ */
+export function sanitizeError(message: string): string {
+  if (!message) return message;
+
+  return message
+    // Redact Bearer tokens
+    .replace(/Bearer\s+[A-Za-z0-9._\-]+/gi, 'Bearer [REDACTED]')
+    // Redact PostgreSQL connection strings
+    .replace(/postgres(ql)?:\/\/[^@\s]+@/gi, 'postgres://[REDACTED]@')
+    // Redact password in connection strings
+    .replace(/password=[^&\s"']+/gi, 'password=[REDACTED]')
+    // Redact API keys (common patterns)
+    .replace(/['"](sk|pk|api|key|token|secret)[_-]?[A-Za-z0-9]{20,}['"]/gi, '"[REDACTED_KEY]"')
+    // Redact Authorization headers
+    .replace(/Authorization:\s*[^\s,}]+/gi, 'Authorization: [REDACTED]')
+    // Redact Basic auth
+    .replace(/Basic\s+[A-Za-z0-9+/=]+/gi, 'Basic [REDACTED]')
+    // Redact Railway tokens
+    .replace(/railway_[A-Za-z0-9_-]+/gi, '[REDACTED_RAILWAY_TOKEN]')
+    // Redact Vercel tokens
+    .replace(/vercel_[A-Za-z0-9_-]+/gi, '[REDACTED_VERCEL_TOKEN]');
+}
+
+/**
+ * Generate a pattern ID from a normalized error pattern string.
+ * Uses a simple hash function to create a stable, compact identifier.
+ */
+export function generatePatternId(pattern: string): string {
+  let hash = 0;
+  for (let i = 0; i < pattern.length; i++) {
+    const char = pattern.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return `err-${Math.abs(hash).toString(36)}`;
+}

@@ -14,8 +14,8 @@
  * Bead: entropy-wiki-3hd
  */
 
-import { execSync } from 'child_process';
-import { CollectorResult, CollectorError } from './collectors/types.js';
+import { execFileSync } from 'child_process';
+import { CollectorResult, CollectorError, generatePatternId } from './collectors/types.js';
 import {
   ErrorBaselineService,
   ErrorPatternEntry,
@@ -153,7 +153,7 @@ export class DebugGateService {
     for (const result of bundle.results) {
       for (const error of result.errors) {
         const pattern = this.baselineService.normalizeToPattern(error.message);
-        const patternId = this.generatePatternId(pattern);
+        const patternId = generatePatternId(pattern);
 
         // Check if suppressed
         if (this.baselineService.isSuppressed(patternId)) {
@@ -278,18 +278,6 @@ export class DebugGateService {
     };
   }
 
-  /**
-   * Generate pattern ID from pattern string
-   */
-  private generatePatternId(pattern: string): string {
-    let hash = 0;
-    for (let i = 0; i < pattern.length; i++) {
-      const char = pattern.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return `err-${Math.abs(hash).toString(36)}`;
-  }
 
   /**
    * Check if an error is actionable
@@ -474,10 +462,11 @@ export class DebugGateService {
     ].filter(Boolean).join('\n');
 
     try {
-      // Use br command (beads_rust)
-      const escapedTitle = title.replace(/"/g, '\\"').replace(/`/g, '\\`');
-      const result = execSync(
-        `br create --title="${escapedTitle}" --type=bug --priority=${error.priority}`,
+      // Use br command (beads_rust) with execFileSync to avoid shell injection
+      // execFileSync passes arguments directly without shell interpretation
+      const result = execFileSync(
+        'br',
+        ['create', `--title=${title}`, '--type=bug', `--priority=${error.priority}`],
         { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
       );
 

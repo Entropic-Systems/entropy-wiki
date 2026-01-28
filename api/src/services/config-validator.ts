@@ -73,6 +73,9 @@ const SERVICE_CONFIGS: Array<{
   },
 ];
 
+// Default timeout for token validation requests (10 seconds)
+const VALIDATION_TIMEOUT_MS = 10000;
+
 /**
  * Validate GitHub token
  */
@@ -90,6 +93,7 @@ async function validateGitHubToken(token: string): Promise<TokenValidation> {
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
       },
+      signal: AbortSignal.timeout(VALIDATION_TIMEOUT_MS),
     });
 
     if (response.ok) {
@@ -150,6 +154,7 @@ async function validateRailwayToken(token: string): Promise<TokenValidation> {
       body: JSON.stringify({
         query: '{ me { id email } }',
       }),
+      signal: AbortSignal.timeout(VALIDATION_TIMEOUT_MS),
     });
 
     if (response.ok) {
@@ -191,6 +196,7 @@ async function validateVercelToken(token: string): Promise<TokenValidation> {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+      signal: AbortSignal.timeout(VALIDATION_TIMEOUT_MS),
     });
 
     if (response.ok) {
