@@ -28,9 +28,10 @@ async function migrate() {
           console.log(`Skipping ${migrationName} (already applied)`);
           continue;
         }
-      } catch (err: any) {
+      } catch (err) {
         // _migrations table doesn't exist yet, that's fine
-        if (err.code !== '42P01') throw err;
+        const pgError = err as { code?: string };
+        if (pgError.code !== '42P01') throw err;
       }
 
       console.log(`Applying ${migrationName}...`);
@@ -39,9 +40,10 @@ async function migrate() {
       try {
         await query(sql);
         console.log(`Applied ${migrationName}`);
-      } catch (err: any) {
+      } catch (err) {
         // Skip optional migrations that require unavailable extensions (e.g., pgvector)
-        if (err.code === '0A000' && err.message?.includes('extension') && migrationName.includes('embeddings')) {
+        const pgError = err as { code?: string; message?: string };
+        if (pgError.code === '0A000' && pgError.message?.includes('extension') && migrationName.includes('embeddings')) {
           console.log(`Skipping ${migrationName} (pgvector extension not available - embeddings disabled)`);
           // Record as skipped so we don't retry every time
           await query(
