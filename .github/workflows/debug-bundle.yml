@@ -117,21 +117,30 @@ jobs:
           echo "Lookback: ${DEBUG_LOOKBACK}"
           echo "Collectors: ${DEBUG_COLLECTORS}"
 
-          # Create collection metadata
-          cat > debug-bundle/metadata.json << EOF
-          {
-            "collectedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "mode": "${DEBUG_MODE}",
-            "lookback": "${DEBUG_LOOKBACK}",
-            "collectors": "${DEBUG_COLLECTORS}",
-            "trigger": "${{ github.event_name }}",
-            "repository": "${{ github.repository }}",
-            "ref": "${{ github.ref }}",
-            "sha": "${{ github.sha }}",
-            "runId": "${{ github.run_id }}",
-            "actor": "${{ github.actor }}"
-          }
-          EOF
+          # Create collection metadata using jq for safe JSON generation
+          jq -n \
+            --arg collectedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg mode "${DEBUG_MODE}" \
+            --arg lookback "${DEBUG_LOOKBACK}" \
+            --arg collectors "${DEBUG_COLLECTORS}" \
+            --arg trigger "${{ github.event_name }}" \
+            --arg repository "${{ github.repository }}" \
+            --arg ref "${{ github.ref }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg runId "${{ github.run_id }}" \
+            --arg actor "${{ github.actor }}" \
+            '{
+              collectedAt: $collectedAt,
+              mode: $mode,
+              lookback: $lookback,
+              collectors: $collectors,
+              trigger: $trigger,
+              repository: $repository,
+              ref: $ref,
+              sha: $sha,
+              runId: $runId,
+              actor: $actor
+            }' > debug-bundle/metadata.json
 
           # Run the debug collector script
           cd api

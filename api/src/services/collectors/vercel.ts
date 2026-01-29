@@ -566,7 +566,7 @@ export class VercelCollector implements Collector {
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Vercel API error ${response.status}: ${error}`);
+        throw new Error(`Vercel API error ${response.status}: ${sanitizeError(error)}`);
       }
 
       return await response.json() as T;

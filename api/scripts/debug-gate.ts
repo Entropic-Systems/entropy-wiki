@@ -19,7 +19,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { CollectorResult, CollectorError } from '../src/services/collectors/types.js';
 
 // Analysis result structure
@@ -91,10 +91,18 @@ function parseArgs(args: string[]): CliOptions {
 
     switch (arg) {
       case '--input':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --input requires a path');
+          process.exit(1);
+        }
         options.input = nextArg;
         i++;
         break;
       case '--output':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --output requires a path');
+          process.exit(1);
+        }
         options.output = nextArg;
         i++;
         break;
@@ -102,10 +110,18 @@ function parseArgs(args: string[]): CliOptions {
         options.createBeads = true;
         break;
       case '--max-beads':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --max-beads requires a number');
+          process.exit(1);
+        }
         options.maxBeads = parseInt(nextArg, 10) || 3;
         i++;
         break;
       case '--baseline':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --baseline requires a path');
+          process.exit(1);
+        }
         options.baseline = nextArg;
         i++;
         break;
@@ -242,8 +258,10 @@ function createBead(
   priority: number
 ): string | null {
   try {
-    const result = execSync(
-      `bd create --title="${title.replace(/"/g, '\\"')}" --type=${type} --priority=${priority}`,
+    // Use execFileSync with array arguments to prevent command injection
+    const result = execFileSync(
+      'bd',
+      ['create', '--title', title, '--type', type, '--priority', String(priority)],
       { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
     );
 

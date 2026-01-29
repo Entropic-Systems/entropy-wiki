@@ -117,10 +117,10 @@ check_ci_status() {
   run_info=$(timeout "$CI_FAILURE_CHECK_TIMEOUT" gh run list --repo "$GITHUB_REPO" --limit 1 --json conclusion,headSha,name,status,workflowName 2>/dev/null || echo "{}")
 
   local conclusion
-  conclusion=$(echo "$run_info" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data[0].get('conclusion', 'unknown') if data else 'unknown')" 2>/dev/null || echo "unknown")
+  conclusion=$(echo "$run_info" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data[0].get('conclusion', 'unknown') if isinstance(data, list) and len(data) > 0 else 'unknown')" 2>/dev/null || echo "unknown")
 
   local workflow_name
-  workflow_name=$(echo "$run_info" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data[0].get('workflowName', 'unknown') if data else 'unknown')" 2>/dev/null || echo "unknown")
+  workflow_name=$(echo "$run_info" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data[0].get('workflowName', 'unknown') if isinstance(data, list) and len(data) > 0 else 'unknown')" 2>/dev/null || echo "unknown")
 
   if [ "$conclusion" = "failure" ]; then
     print_status "$RED" "FAIL" "CI Failure detected in workflow: $workflow_name"
@@ -194,10 +194,19 @@ create_failure_bead() {
   local priority
   priority=$(determine_priority "build")
 
-  local title="CI Failure: $workflow_name (${commit_sha:0:7})"
-  local description="Auto-detected CI failure in workflow '$workflow_name' after commit ${commit_sha:0:7}.
+  # Sanitize inputs to prevent command injection
+  # Remove any shell metacharacters and limit length
+  local safe_workflow_name
+  safe_workflow_name=$(printf '%s' "$workflow_name" | tr -cd '[:alnum:] ._-' | head -c 50)
+  local safe_commit_sha
+  safe_commit_sha=$(printf '%s' "${commit_sha:0:7}" | tr -cd '[:alnum:]')
+  local safe_commit_msg
+  safe_commit_msg=$(printf '%s' "$commit_msg" | tr -cd '[:alnum:] ._-:()' | head -c 100)
 
-**Commit Message:** $commit_msg
+  local title="CI Failure: ${safe_workflow_name} (${safe_commit_sha})"
+  local description="Auto-detected CI failure in workflow '${safe_workflow_name}' after commit ${safe_commit_sha}.
+
+**Commit Message:** ${safe_commit_msg}
 
 **Suggested Actions:**
 1. Review the workflow logs for error details
@@ -209,7 +218,8 @@ create_failure_bead() {
 
   print_status "$BLUE" "INFO" "Creating bug bead for CI failure..."
 
-  if bd create --title="$title" --type=bug --priority="$priority" 2>/dev/null; then
+  # Use array-style arguments with proper quoting to prevent injection
+  if bd create --title "$title" --type bug --priority "$priority" 2>/dev/null; then
     print_status "$GREEN" "OK" "Bug bead created for CI failure"
   else
     print_status "$YELLOW" "WARN" "Failed to create bug bead"

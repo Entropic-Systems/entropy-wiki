@@ -25,6 +25,7 @@ import {
   DEFAULT_COLLECTOR_CONFIG,
   generateErrorId,
   determineHealthStatus,
+  sanitizeError,
 } from './types.js';
 
 // Railway database-specific configuration
@@ -197,7 +198,7 @@ export class RailwayDbCollector implements Collector {
           timestamp: collectedAt,
           severity: 'critical',
           category: 'database',
-          message: `Database connection failed: ${err instanceof Error ? err.message : String(err)}`,
+          message: `Database connection failed: ${sanitizeError(err instanceof Error ? err.message : String(err))}`,
           source: `${this.name}:connection`,
         });
         criticalErrors++;
@@ -214,7 +215,7 @@ export class RailwayDbCollector implements Collector {
           status: 'unhealthy',
           latencyMs: connectLatency,
           lastChecked: collectedAt,
-          message: err instanceof Error ? err.message : 'Connection failed',
+          message: sanitizeError(err instanceof Error ? err.message : 'Connection failed'),
         });
 
         // Can't continue without database connection
@@ -331,7 +332,7 @@ export class RailwayDbCollector implements Collector {
           timestamp: collectedAt,
           severity: 'error',
           category: 'database',
-          message: `Failed to collect database statistics: ${err instanceof Error ? err.message : String(err)}`,
+          message: `Failed to collect database statistics: ${sanitizeError(err instanceof Error ? err.message : String(err))}`,
           source: `${this.name}:stats`,
         });
 
@@ -380,7 +381,16 @@ export class RailwayDbCollector implements Collector {
         const slowQueryLatency = Date.now() - slowQueryStart;
         totalResponseTime += slowQueryLatency;
 
-        // Not critical if slow query check fails
+        // Not critical if slow query check fails, but log it
+        errors.push({
+          id: generateErrorId(this.name),
+          timestamp: collectedAt,
+          severity: 'warning',
+          category: 'database',
+          message: `Failed to check slow queries: ${sanitizeError(err instanceof Error ? err.message : String(err))}`,
+          source: `${this.name}:slow_query`,
+        });
+
         metrics.push({
           responseTimeMs: slowQueryLatency,
           statusCode: 500,
@@ -417,7 +427,16 @@ export class RailwayDbCollector implements Collector {
         const migrationsLatency = Date.now() - migrationsStart;
         totalResponseTime += migrationsLatency;
 
-        // Migrations table might not exist, not critical
+        // Migrations table might not exist, not critical but log it
+        errors.push({
+          id: generateErrorId(this.name),
+          timestamp: collectedAt,
+          severity: 'info',
+          category: 'database',
+          message: `Could not check migrations (table may not exist): ${sanitizeError(err instanceof Error ? err.message : String(err))}`,
+          source: `${this.name}:migrations`,
+        });
+
         metrics.push({
           responseTimeMs: migrationsLatency,
           statusCode: 404,
@@ -430,7 +449,7 @@ export class RailwayDbCollector implements Collector {
       // Clean up connection pool
       if (pool) {
         await pool.end().catch((err) => {
-          console.error('Failed to close database pool:', err instanceof Error ? err.message : String(err));
+          console.error('Failed to close database pool:', sanitizeError(err instanceof Error ? err.message : String(err)));
         });
       }
     }
@@ -461,20 +480,26 @@ export class RailwayDbCollector implements Collector {
    * Collect database statistics from pg_stat views
    */
   private async collectDatabaseStats(pool: InstanceType<typeof import('pg').Pool>): Promise<DbStatistics> {
+    const queryTimeout = 10000; // 10 second timeout per query
+
     // Get connection counts
-    const connectionsResult = await pool.query(`
-      SELECT
+    const connectionsResult = await this.queryWithTimeout<{ rows: Array<Record<string, string>> }>(
+      pool,
+      `SELECT
         count(*) FILTER (WHERE state = 'active') as active,
         count(*) FILTER (WHERE state = 'idle') as idle,
         count(*) FILTER (WHERE state LIKE 'idle in transaction%') as idle_in_transaction,
         (SELECT setting::int FROM pg_settings WHERE name = 'max_connections') as max_connections
       FROM pg_stat_activity
-      WHERE datname = current_database()
-    `);
+      WHERE datname = current_database()`,
+      [],
+      queryTimeout
+    );
 
     // Get database stats
-    const dbStatsResult = await pool.query(`
-      SELECT
+    const dbStatsResult = await this.queryWithTimeout<{ rows: Array<Record<string, string>> }>(
+      pool,
+      `SELECT
         pg_database_size(current_database()) as db_size,
         xact_commit as commits,
         xact_rollback as rollbacks,
@@ -482,38 +507,43 @@ export class RailwayDbCollector implements Collector {
         blks_hit,
         blks_read
       FROM pg_stat_database
-      WHERE datname = current_database()
-    `);
+      WHERE datname = current_database()`,
+      [],
+      queryTimeout
+    );
 
     // Get blocked queries count
-    const blockedResult = await pool.query(`
-      SELECT count(*) as blocked
+    const blockedResult = await this.queryWithTimeout<{ rows: Array<Record<string, string>> }>(
+      pool,
+      `SELECT count(*) as blocked
       FROM pg_stat_activity
       WHERE wait_event_type = 'Lock'
-        AND datname = current_database()
-    `);
+        AND datname = current_database()`,
+      [],
+      queryTimeout
+    );
 
     const conns = connectionsResult.rows[0];
     const stats = dbStatsResult.rows[0];
     const blocked = blockedResult.rows[0];
 
     // Calculate cache hit ratio
-    const blksHit = parseInt(stats.blks_hit) || 0;
-    const blksRead = parseInt(stats.blks_read) || 0;
+    const blksHit = parseInt(stats.blks_hit, 10) || 0;
+    const blksRead = parseInt(stats.blks_read, 10) || 0;
     const cacheHitRatio = blksHit + blksRead > 0
       ? blksHit / (blksHit + blksRead)
       : 1;
 
     return {
-      activeConnections: parseInt(conns.active) || 0,
-      idleConnections: parseInt(conns.idle) || 0,
-      maxConnections: parseInt(conns.max_connections) || 100,
-      databaseSize: this.formatBytes(parseInt(stats.db_size) || 0),
+      activeConnections: parseInt(conns.active, 10) || 0,
+      idleConnections: parseInt(conns.idle, 10) || 0,
+      maxConnections: parseInt(conns.max_connections, 10) || 100,
+      databaseSize: this.formatBytes(parseInt(stats.db_size, 10) || 0),
       cacheHitRatio,
-      transactionsCommitted: parseInt(stats.commits) || 0,
-      transactionsRolledBack: parseInt(stats.rollbacks) || 0,
-      deadlocks: parseInt(stats.deadlocks) || 0,
-      blockedQueries: parseInt(blocked.blocked) || 0,
+      transactionsCommitted: parseInt(stats.commits, 10) || 0,
+      transactionsRolledBack: parseInt(stats.rollbacks, 10) || 0,
+      deadlocks: parseInt(stats.deadlocks, 10) || 0,
+      blockedQueries: parseInt(blocked.blocked, 10) || 0,
     };
   }
 
@@ -524,8 +554,9 @@ export class RailwayDbCollector implements Collector {
     pool: InstanceType<typeof import('pg').Pool>,
     thresholdMs: number
   ): Promise<SlowQuery[]> {
-    const result = await pool.query(`
-      SELECT
+    const result = await this.queryWithTimeout<{ rows: Array<Record<string, unknown>> }>(
+      pool,
+      `SELECT
         query_start,
         EXTRACT(EPOCH FROM (NOW() - query_start)) * 1000 as duration_ms,
         state,
@@ -537,15 +568,17 @@ export class RailwayDbCollector implements Collector {
         AND datname = current_database()
         AND EXTRACT(EPOCH FROM (NOW() - query_start)) * 1000 > $1
       ORDER BY query_start ASC
-      LIMIT 10
-    `, [thresholdMs]);
+      LIMIT 10`,
+      [thresholdMs],
+      10000
+    );
 
     return result.rows.map(row => ({
-      queryStart: row.query_start,
-      duration: parseFloat(row.duration_ms),
-      state: row.state,
-      query: row.query,
-      waitEvent: row.wait_event,
+      queryStart: String(row.query_start),
+      duration: parseFloat(String(row.duration_ms)),
+      state: String(row.state),
+      query: String(row.query),
+      waitEvent: row.wait_event ? String(row.wait_event) : undefined,
     }));
   }
 
@@ -555,17 +588,40 @@ export class RailwayDbCollector implements Collector {
   private async checkMigrations(
     pool: InstanceType<typeof import('pg').Pool>
   ): Promise<MigrationStatus[]> {
-    const result = await pool.query(`
-      SELECT name, applied_at
+    const result = await this.queryWithTimeout<{ rows: Array<Record<string, unknown>> }>(
+      pool,
+      `SELECT name, applied_at
       FROM _migrations
       ORDER BY applied_at DESC
-      LIMIT 10
-    `);
+      LIMIT 10`,
+      [],
+      10000
+    );
 
     return result.rows.map(row => ({
-      name: row.name,
-      appliedAt: row.applied_at,
+      name: String(row.name),
+      appliedAt: String(row.applied_at),
     }));
+  }
+
+  /**
+   * Execute a query with timeout to prevent indefinite blocking
+   */
+  private async queryWithTimeout<T>(
+    pool: InstanceType<typeof import('pg').Pool>,
+    sql: string,
+    params: unknown[] = [],
+    timeoutMs: number = 10000
+  ): Promise<T> {
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error(`Query timeout after ${timeoutMs}ms`)), timeoutMs);
+    });
+
+    const queryPromise = params.length > 0
+      ? pool.query(sql, params)
+      : pool.query(sql);
+
+    return Promise.race([queryPromise, timeoutPromise]) as Promise<T>;
   }
 
   /**

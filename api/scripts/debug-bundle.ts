@@ -53,22 +53,44 @@ function parseArgs(args: string[]): CliOptions {
 
     switch (arg) {
       case '--mode':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --mode requires a value (logs or full)');
+          process.exit(1);
+        }
         if (nextArg === 'logs' || nextArg === 'full') {
           options.mode = nextArg;
+        } else {
+          console.error(`Error: --mode must be 'logs' or 'full', got '${nextArg}'`);
+          process.exit(1);
         }
         i++;
         break;
       case '--lookback':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --lookback requires a value (30m, 2h, or 1d)');
+          process.exit(1);
+        }
         if (nextArg === '30m' || nextArg === '2h' || nextArg === '1d') {
           options.lookback = nextArg;
+        } else {
+          console.error(`Error: --lookback must be '30m', '2h', or '1d', got '${nextArg}'`);
+          process.exit(1);
         }
         i++;
         break;
       case '--collectors':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --collectors requires a value (comma-separated list or "all")');
+          process.exit(1);
+        }
         options.collectors = nextArg.split(',').map(c => c.trim());
         i++;
         break;
       case '--output':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --output requires a path');
+          process.exit(1);
+        }
         options.output = nextArg;
         i++;
         break;

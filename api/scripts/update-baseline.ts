@@ -108,10 +108,18 @@ function parseArgs(args: string[]): CliOptions {
 
     switch (arg) {
       case '--input':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --input requires a path');
+          process.exit(1);
+        }
         options.input = nextArg;
         i++;
         break;
       case '--baseline':
+        if (!nextArg || nextArg.startsWith('-')) {
+          console.error('Error: --baseline requires a path');
+          process.exit(1);
+        }
         options.baseline = nextArg;
         i++;
         break;
