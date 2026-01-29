@@ -4,15 +4,15 @@
  * Provides category management endpoints:
  * - GET /categories - Get category tree
  * - GET /categories/:id - Get single category
- * - POST /categories - Create category
- * - PUT /categories/:id - Update category
- * - DELETE /categories/:id - Delete category
+ * - POST /categories - Create category (auth required)
+ * - PUT /categories/:id - Update category (auth required)
+ * - DELETE /categories/:id - Delete category (auth required)
  * - GET /categories/:id/pages - Get pages in category
- * - POST /pages/:slug/categorize - Auto-categorize a page
+ * - POST /pages/:slug/categorize - Auto-categorize a page (auth required)
  * - GET /categories/stats - Get category statistics
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import {
   getCategoryTree,
   getCategoryById,
@@ -37,8 +37,35 @@ import {
   analyzeStructureHealth,
 } from '../services/categorization/placement-advisor.js';
 import { query } from '../db/client.js';
+import { getAdminPasswordHash, comparePassword } from '../utils/auth.js';
 
 const router = Router();
+
+/**
+ * Auth middleware for write operations
+ * Uses bcrypt for secure password comparison (aligned with admin.ts)
+ */
+async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const password = req.headers['x-admin-password'] as string;
+
+  if (!password) {
+    return res.status(401).json({ error: 'unauthorized', message: 'Admin password required' });
+  }
+
+  try {
+    const adminPasswordHash = await getAdminPasswordHash();
+    const isValid = await comparePassword(password, adminPasswordHash);
+
+    if (!isValid) {
+      return res.status(401).json({ error: 'unauthorized', message: 'Invalid admin password' });
+    }
+
+    next();
+  } catch (err) {
+    console.error('Auth configuration error:', err);
+    return res.status(500).json({ error: 'config_error', message: 'Server not configured for admin access' });
+  }
+}
 
 /**
  * GET /categories
@@ -171,9 +198,9 @@ router.get('/:id/pages', async (req: Request, res: Response) => {
 /**
  * POST /categories
  *
- * Create a new category
+ * Create a new category (requires authentication)
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { name, slug, parentId, description, icon, sortOrder } = req.body;
 
@@ -215,9 +242,9 @@ router.post('/', async (req: Request, res: Response) => {
 /**
  * PUT /categories/:id
  *
- * Update a category
+ * Update a category (requires authentication)
  */
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, slug, parentId, description, icon, sortOrder } = req.body;
@@ -262,9 +289,9 @@ router.put('/:id', async (req: Request, res: Response) => {
 /**
  * DELETE /categories/:id
  *
- * Delete a category
+ * Delete a category (requires authentication)
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -290,9 +317,9 @@ router.delete('/:id', async (req: Request, res: Response) => {
 /**
  * POST /categories/:sourceId/merge/:targetId
  *
- * Merge source category into target
+ * Merge source category into target (requires authentication)
  */
-router.post('/:sourceId/merge/:targetId', async (req: Request, res: Response) => {
+router.post('/:sourceId/merge/:targetId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { sourceId, targetId } = req.params;
 
@@ -353,9 +380,9 @@ router.get('/pages/:slug/categories', async (req: Request, res: Response) => {
 /**
  * POST /pages/:slug/categories/:categoryId
  *
- * Assign a page to a category
+ * Assign a page to a category (requires authentication)
  */
-router.post('/pages/:slug/categories/:categoryId', async (req: Request, res: Response) => {
+router.post('/pages/:slug/categories/:categoryId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { slug, categoryId } = req.params;
     const { confidence = 1.0, isPrimary = false, assignedBy = 'user' } = req.body;
@@ -379,9 +406,9 @@ router.post('/pages/:slug/categories/:categoryId', async (req: Request, res: Res
 /**
  * DELETE /pages/:slug/categories/:categoryId
  *
- * Remove a page from a category
+ * Remove a page from a category (requires authentication)
  */
-router.delete('/pages/:slug/categories/:categoryId', async (req: Request, res: Response) => {
+router.delete('/pages/:slug/categories/:categoryId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { slug, categoryId } = req.params;
     await removePageFromCategory(slug, categoryId);
@@ -398,9 +425,9 @@ router.delete('/pages/:slug/categories/:categoryId', async (req: Request, res: R
 /**
  * POST /pages/:slug/auto-categorize
  *
- * Auto-categorize a page using AI
+ * Auto-categorize a page using AI (requires authentication)
  */
-router.post('/pages/:slug/auto-categorize', async (req: Request, res: Response) => {
+router.post('/pages/:slug/auto-categorize', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const { apply = false } = req.body;
@@ -443,9 +470,9 @@ router.post('/pages/:slug/auto-categorize', async (req: Request, res: Response) 
 /**
  * POST /content/classify
  *
- * Classify content without saving (preview)
+ * Classify content without saving (preview, requires authentication)
  */
-router.post('/content/classify', async (req: Request, res: Response) => {
+router.post('/content/classify', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { content, title } = req.body;
 

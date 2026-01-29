@@ -1,6 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { timingSafeEqual } from 'crypto';
 import { query, getClient } from '../db/client.js';
 import {
   IngestJob,
@@ -14,40 +13,33 @@ import {
   SourceType,
 } from '../types.js';
 import { backfillEmbeddings } from '../services/embeddings.js';
+import { getAdminPasswordHash, comparePassword } from '../utils/auth.js';
 
 const router = Router();
 
-// Auth middleware - same pattern as admin.ts
-function authMiddleware(req: Request, res: Response, next: NextFunction) {
+/**
+ * Auth middleware - aligned with admin.ts pattern
+ * Uses bcrypt for secure password comparison
+ */
+async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const password = req.headers['x-admin-password'] as string;
 
-  if (!process.env.ADMIN_PASSWORD) {
-    console.error('ADMIN_PASSWORD not set in environment');
-    return res.status(500).json({ error: 'config_error', message: 'Server not configured for admin access' });
-  }
-
-  // Constant-time comparison to prevent timing attacks
-  if (!password || !isValidPassword(password, process.env.ADMIN_PASSWORD)) {
-    return res.status(401).json({ error: 'unauthorized', message: 'Invalid admin password' });
-  }
-
-  next();
-}
-
-/**
- * Constant-time password comparison to prevent timing attacks
- */
-function isValidPassword(provided: string, expected: string): boolean {
-  if (provided.length !== expected.length) {
-    // Still do timing-safe comparison to prevent length-based timing attacks
-    timingSafeEqual(Buffer.from('dummy'), Buffer.from('dummy'));
-    return false;
+  if (!password) {
+    return res.status(401).json({ error: 'unauthorized', message: 'Admin password required' });
   }
 
   try {
-    return timingSafeEqual(Buffer.from(provided, 'utf8'), Buffer.from(expected, 'utf8'));
-  } catch {
-    return false;
+    const adminPasswordHash = await getAdminPasswordHash();
+    const isValid = await comparePassword(password, adminPasswordHash);
+
+    if (!isValid) {
+      return res.status(401).json({ error: 'unauthorized', message: 'Invalid admin password' });
+    }
+
+    next();
+  } catch (err) {
+    console.error('Auth configuration error:', err);
+    return res.status(500).json({ error: 'config_error', message: 'Server not configured for admin access' });
   }
 }
 
@@ -172,7 +164,7 @@ router.post('/', async (req: Request, res: Response) => {
     };
 
     res.status(201).json(response);
-  } catch (err: any) {
+  } catch (err) {
     await client.query('ROLLBACK');
     console.error('Error creating ingest job:', err);
     res.status(500).json({ error: 'database_error', message: 'Failed to create ingest job' });
@@ -528,9 +520,10 @@ router.post('/embeddings/backfill', async (_req: Request, res: Response) => {
       message: `Backfill complete: ${stats.processed} processed, ${stats.failed} failed`,
       ...stats,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error backfilling embeddings:', err);
-    res.status(500).json({ error: 'backfill_error', message: err.message || 'Failed to backfill embeddings' });
+    const error = err instanceof Error ? err : new Error(String(err));
+    res.status(500).json({ error: 'backfill_error', message: error.message || 'Failed to backfill embeddings' });
   }
 });
 

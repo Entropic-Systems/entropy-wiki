@@ -6,9 +6,10 @@
  * - GET /search/quick - Autocomplete/quick search
  * - GET /search/suggestions - Search suggestions
  * - GET /search/related/:slug - Find related content
+ * - GET /search/stats - Search analytics (admin only)
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import {
   search,
   quickSearch,
@@ -17,6 +18,32 @@ import {
   intentSearch,
   SearchOptions,
 } from '../services/search/index.js';
+import { getAdminPasswordHash, comparePassword } from '../utils/auth.js';
+
+/**
+ * Auth middleware for admin-only endpoints
+ */
+async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const password = req.headers['x-admin-password'] as string;
+
+  if (!password) {
+    return res.status(401).json({ error: 'unauthorized', message: 'Admin password required' });
+  }
+
+  try {
+    const adminPasswordHash = await getAdminPasswordHash();
+    const isValid = await comparePassword(password, adminPasswordHash);
+
+    if (!isValid) {
+      return res.status(401).json({ error: 'unauthorized', message: 'Invalid admin password' });
+    }
+
+    next();
+  } catch (err) {
+    console.error('Auth configuration error:', err);
+    return res.status(500).json({ error: 'config_error', message: 'Server not configured for admin access' });
+  }
+}
 
 const router = Router();
 
@@ -33,6 +60,9 @@ const router = Router();
  * - mode: Search mode - 'hybrid' | 'vector' | 'fulltext' (default: hybrid)
  * - intent: Use intent-aware search (default: false)
  */
+// Maximum query length to prevent DoS via huge query strings
+const MAX_QUERY_LENGTH = 1000;
+
 router.get('/', async (req: Request, res: Response) => {
   try {
     const query = req.query.q as string;
@@ -41,6 +71,13 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(400).json({
         error: 'invalid_query',
         message: 'Search query (q) is required',
+      });
+    }
+
+    if (query.length > MAX_QUERY_LENGTH) {
+      return res.status(400).json({
+        error: 'invalid_query',
+        message: `Search query exceeds maximum length of ${MAX_QUERY_LENGTH} characters`,
       });
     }
 
@@ -122,6 +159,13 @@ router.get('/quick', async (req: Request, res: Response) => {
       });
     }
 
+    if (query.length > MAX_QUERY_LENGTH) {
+      return res.status(400).json({
+        error: 'invalid_query',
+        message: `Search query exceeds maximum length of ${MAX_QUERY_LENGTH} characters`,
+      });
+    }
+
     if (query.length < 2) {
       return res.json({ results: [] });
     }
@@ -155,6 +199,13 @@ router.get('/suggestions', async (req: Request, res: Response) => {
       return res.status(400).json({
         error: 'invalid_query',
         message: 'Query (q) is required',
+      });
+    }
+
+    if (query.length > MAX_QUERY_LENGTH) {
+      return res.status(400).json({
+        error: 'invalid_query',
+        message: `Query exceeds maximum length of ${MAX_QUERY_LENGTH} characters`,
       });
     }
 
@@ -209,9 +260,9 @@ router.get('/related/:slug', async (req: Request, res: Response) => {
  * GET /search/stats
  *
  * Get search statistics and analytics
- * (Admin/debug endpoint)
+ * (Admin-only endpoint - requires authentication)
  */
-router.get('/stats', async (req: Request, res: Response) => {
+router.get('/stats', authMiddleware, async (req: Request, res: Response) => {
   try {
     // Import query here to avoid issues
     const { query: dbQuery } = await import('../db/client.js');

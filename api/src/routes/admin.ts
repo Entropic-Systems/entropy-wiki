@@ -291,10 +291,11 @@ router.post('/pages', async (req: Request, res: Response) => {
         content_md: body.content_md
       }
     });
-  } catch (err: any) {
+  } catch (err) {
     await client.query('ROLLBACK');
 
-    if (err.code === '23505') { // unique violation
+    const pgError = err as { code?: string };
+    if (pgError.code === '23505') { // unique violation
       return res.status(409).json({ error: 'conflict', message: 'A page with this slug already exists' });
     }
 
@@ -416,11 +417,12 @@ router.post('/pages/:id/move', async (req: Request, res: Response) => {
   const client = await getClient();
 
   try {
-    await client.query('BEGIN');
+    // Use SERIALIZABLE isolation to prevent hierarchy race conditions (TOCTOU)
+    await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
 
-    // Check page exists
+    // Lock the page being moved with FOR UPDATE to serialize concurrent moves
     const pageResult = await client.query(`
-      SELECT id FROM pages WHERE id = $1
+      SELECT id FROM pages WHERE id = $1 FOR UPDATE
     `, [id]);
 
     if (pageResult.rows.length === 0) {
@@ -430,8 +432,9 @@ router.post('/pages/:id/move', async (req: Request, res: Response) => {
 
     // If parent_id specified, validate it exists and check for circular reference
     if (parent_id) {
+      // Lock parent page to prevent concurrent hierarchy modifications
       const parentResult = await client.query(`
-        SELECT id FROM pages WHERE id = $1
+        SELECT id FROM pages WHERE id = $1 FOR UPDATE
       `, [parent_id]);
 
       if (parentResult.rows.length === 0) {
@@ -446,6 +449,7 @@ router.post('/pages/:id/move', async (req: Request, res: Response) => {
       }
 
       // Check for circular reference (parent cannot be a descendant of this page)
+      // The SERIALIZABLE transaction ensures consistency during this check
       const circularCheck = await client.query(`
         WITH RECURSIVE ancestors AS (
           SELECT id, parent_id FROM pages WHERE id = $1
@@ -754,6 +758,15 @@ router.post('/pages/bulk', async (req: Request, res: Response) => {
     });
   }
 
+  // Limit array size to prevent DoS attacks
+  const MAX_BULK_OPERATIONS = 100;
+  if (page_ids.length > MAX_BULK_OPERATIONS) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: `page_ids array exceeds maximum size of ${MAX_BULK_OPERATIONS}`
+    });
+  }
+
   if (!['publish', 'unpublish', 'delete'].includes(action)) {
     return res.status(400).json({
       error: 'validation_error',
@@ -815,8 +828,9 @@ router.post('/pages/bulk', async (req: Request, res: Response) => {
             results.push({ page_id, success: true });
             break;
         }
-      } catch (err: any) {
-        results.push({ page_id, success: false, error: err.message || 'Unknown error' });
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        results.push({ page_id, success: false, error: error.message || 'Unknown error' });
       }
     }
 
@@ -849,14 +863,23 @@ router.post('/pages/reorder', async (req: Request, res: Response) => {
     });
   }
 
+  // Limit array size to prevent DoS attacks
+  const MAX_REORDER_OPERATIONS = 200;
+  if (page_ids.length > MAX_REORDER_OPERATIONS) {
+    return res.status(400).json({
+      error: 'validation_error',
+      message: `page_ids array exceeds maximum size of ${MAX_REORDER_OPERATIONS}`
+    });
+  }
+
   const client = await getClient();
 
   try {
     await client.query('BEGIN');
 
-    // Validate all pages exist and have the correct parent
+    // Validate all pages exist, have the correct parent, and lock them for update
     const existingResult = await client.query(`
-      SELECT id, parent_id FROM pages WHERE id = ANY($1)
+      SELECT id, parent_id FROM pages WHERE id = ANY($1) FOR UPDATE
     `, [page_ids]);
 
     const existingIds = new Set(existingResult.rows.map(r => r.id));
@@ -884,12 +907,17 @@ router.post('/pages/reorder', async (req: Request, res: Response) => {
       });
     }
 
-    // Update sort_order based on array position
-    for (let i = 0; i < page_ids.length; i++) {
-      await client.query(`
-        UPDATE pages SET sort_order = $1 WHERE id = $2
-      `, [i, page_ids[i]]);
-    }
+    // Batch update sort_order using a VALUES join
+    // This is more efficient than multiple sequential UPDATEs and uses proper parameterization
+    // Build parameterized values list: ($1, 0), ($2, 1), ...
+    const valueParams = page_ids.map((_, i) => `($${i + 1}::uuid, ${i})`).join(', ');
+
+    await client.query(`
+      UPDATE pages p
+      SET sort_order = v.sort_order
+      FROM (VALUES ${valueParams}) AS v(id, sort_order)
+      WHERE p.id = v.id
+    `, page_ids);
 
     await client.query('COMMIT');
 

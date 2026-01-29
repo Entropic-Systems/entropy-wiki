@@ -32,6 +32,7 @@ export interface VectorSearchOptions {
   includeChunkText?: boolean;
   categoryFilter?: string[];
   excludeSlugs?: string[];
+  timeoutMs?: number;
 }
 
 /**
@@ -43,7 +44,18 @@ const DEFAULT_OPTIONS: Required<VectorSearchOptions> = {
   includeChunkText: false,
   categoryFilter: [],
   excludeSlugs: [],
+  timeoutMs: 10000, // 10 second timeout
 };
+
+/**
+ * Vector search error for better error handling
+ */
+export class VectorSearchError extends Error {
+  constructor(message: string, public cause?: Error) {
+    super(message);
+    this.name = 'VectorSearchError';
+  }
+}
 
 /**
  * Perform vector similarity search
@@ -52,12 +64,44 @@ export async function vectorSearch(
   queryText: string,
   options: VectorSearchOptions = {}
 ): Promise<VectorSearchResult[]> {
+  // Input validation
+  if (!queryText || typeof queryText !== 'string' || queryText.trim().length === 0) {
+    throw new VectorSearchError('Query text must be a non-empty string');
+  }
+
+  if (queryText.length > 10000) {
+    throw new VectorSearchError('Query text too long (max 10,000 characters)');
+  }
+
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
+  // Validate options
+  if (opts.limit <= 0 || opts.limit > 100) {
+    throw new VectorSearchError('Limit must be between 1 and 100');
+  }
+
+  if (opts.threshold < 0 || opts.threshold > 1) {
+    throw new VectorSearchError('Threshold must be between 0 and 1');
+  }
+
   try {
-    // Generate embedding for query
-    const queryEmbedding = await generateEmbedding(queryText);
-    const embeddingStr = `[${queryEmbedding.join(',')}]`;
+    // Generate embedding for query with timeout
+    const queryEmbedding = await Promise.race([
+      generateEmbedding(queryText),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Embedding generation timeout')), 5000)
+      )
+    ]);
+
+    // Validate embedding
+    if (!Array.isArray(queryEmbedding) || queryEmbedding.length === 0) {
+      throw new VectorSearchError('Invalid embedding generated from query');
+    }
+
+    // Safely construct vector parameter
+    if (!queryEmbedding.every(n => typeof n === 'number' && !isNaN(n))) {
+      throw new VectorSearchError('Invalid embedding values: must be numeric');
+    }
 
     // Build query with optional filters
     let sql = `
@@ -74,7 +118,7 @@ export async function vectorSearch(
         AND 1 - (pe.embedding <=> $1::vector) >= $2
     `;
 
-    const params: any[] = [embeddingStr, opts.threshold];
+    const params: any[] = [queryEmbedding, opts.threshold];
     let paramIndex = 3;
 
     // Add category filter if specified
@@ -105,14 +149,20 @@ export async function vectorSearch(
     `;
     params.push(opts.limit);
 
-    const result = await query<{
-      page_slug: string;
-      page_title: string;
-      page_id: string;
-      chunk_index: number;
-      similarity: number;
-      chunk_text?: string;
-    }>(sql, params);
+    // Execute query with timeout
+    const result = await Promise.race([
+      query<{
+        page_slug: string;
+        page_title: string;
+        page_id: string;
+        chunk_index: number;
+        similarity: number;
+        chunk_text?: string;
+      }>(sql, params),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Database query timeout')), opts.timeoutMs)
+      )
+    ]);
 
     return result.rows.map(row => ({
       pageSlug: row.page_slug,
@@ -124,8 +174,19 @@ export async function vectorSearch(
       matchType: 'semantic' as const,
     }));
   } catch (error) {
-    console.error('Vector search error:', error);
-    return [];
+    // Proper error handling - don't mask database failures
+    if (error instanceof Error) {
+      if (error.message.includes('timeout')) {
+        throw new VectorSearchError('Search operation timed out', error);
+      } else if (error.message.includes('vector')) {
+        throw new VectorSearchError('Vector operation failed - ensure pgvector is available', error);
+      } else {
+        throw new VectorSearchError('Database query failed', error);
+      }
+    }
+    // Handle non-Error objects by wrapping in Error
+    const wrappedError = new Error(String(error));
+    throw new VectorSearchError('Unknown error during vector search', wrappedError);
   }
 }
 

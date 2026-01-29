@@ -87,13 +87,42 @@ export interface DomainAuthorityResult {
 
 /**
  * Extract root domain from URL
+ * SECURITY: Validates URL before processing to prevent injection
  */
 export function extractDomain(url: string): string {
+  if (!url || typeof url !== 'string') {
+    throw new Error('Invalid URL: must be a non-empty string');
+  }
+
+  // Basic URL format validation
+  if (!/^https?:\/\/.+/i.test(url)) {
+    throw new Error('Invalid URL: must start with http:// or https://');
+  }
+
   try {
     const parsed = new URL(url);
-    return parsed.hostname.replace(/^www\./, '');
-  } catch {
-    return url;
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Additional security validation
+    if (!hostname || hostname.length === 0) {
+      throw new Error('Invalid URL: no hostname found');
+    }
+
+    // Prevent localhost and private IP access
+    if (hostname === 'localhost' ||
+        hostname.startsWith('127.') ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('172.16.') ||
+        hostname.startsWith('192.168.')) {
+      throw new Error('Invalid URL: local/private addresses not allowed');
+    }
+
+    return hostname.replace(/^www\./, '');
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`URL parsing failed: ${error.message}`);
+    }
+    throw new Error('URL parsing failed: unknown error');
   }
 }
 

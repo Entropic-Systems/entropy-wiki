@@ -196,8 +196,14 @@ export async function classifyContent(
   const categoryTree = await getCategoryTree();
   const categoryPaths = buildCategoryPaths(categoryTree);
 
-  // Score each category
-  const scores: CategoryClassification[] = [];
+  // Score each category and collect those that pass threshold
+  const preliminaryScores: Array<{
+    categoryId: string;
+    confidence: number;
+    semanticScore: number;
+    keywordScore: number;
+    path: string[];
+  }> = [];
 
   for (const catEmb of categoryEmbeddings) {
     // Semantic similarity (70% weight)
@@ -211,22 +217,37 @@ export async function classifyContent(
 
     if (confidence >= opts.minConfidence) {
       const path = categoryPaths.get(catEmb.categoryId) || [];
-      const category = await getCategoryById(catEmb.categoryId);
+      preliminaryScores.push({
+        categoryId: catEmb.categoryId,
+        confidence,
+        semanticScore,
+        keywordScore,
+        path,
+      });
+    }
+  }
 
-      if (category) {
-        const matchReasons: string[] = [];
-        if (semanticScore >= 0.5) matchReasons.push(`High semantic similarity (${(semanticScore * 100).toFixed(0)}%)`);
-        if (keywordScore >= 0.3) matchReasons.push(`Keyword match (${(keywordScore * 100).toFixed(0)}%)`);
+  // Batch fetch all needed categories in a single query (N+1 query fix)
+  const categoryIds = preliminaryScores.map(s => s.categoryId);
+  const categoriesMap = await getCategoriesByIds(categoryIds);
 
-        scores.push({
-          categoryId: catEmb.categoryId,
-          categorySlug: category.slug,
-          categoryName: category.name,
-          confidence,
-          path,
-          matchReasons,
-        });
-      }
+  // Build final scores using the batch-fetched categories
+  const scores: CategoryClassification[] = [];
+  for (const prelim of preliminaryScores) {
+    const category = categoriesMap.get(prelim.categoryId);
+    if (category) {
+      const matchReasons: string[] = [];
+      if (prelim.semanticScore >= 0.5) matchReasons.push(`High semantic similarity (${(prelim.semanticScore * 100).toFixed(0)}%)`);
+      if (prelim.keywordScore >= 0.3) matchReasons.push(`Keyword match (${(prelim.keywordScore * 100).toFixed(0)}%)`);
+
+      scores.push({
+        categoryId: prelim.categoryId,
+        categorySlug: category.slug,
+        categoryName: category.name,
+        confidence: prelim.confidence,
+        path: prelim.path,
+        matchReasons,
+      });
     }
   }
 
@@ -279,6 +300,25 @@ async function getCategoryById(id: string): Promise<{ slug: string; name: string
   `, [id]);
 
   return result.rows[0] || null;
+}
+
+/**
+ * Batch fetch categories by IDs (avoids N+1 queries)
+ */
+async function getCategoriesByIds(ids: string[]): Promise<Map<string, { slug: string; name: string }>> {
+  if (ids.length === 0) {
+    return new Map();
+  }
+
+  const result = await query<{ id: string; slug: string; name: string }>(`
+    SELECT id, slug, name FROM categories WHERE id = ANY($1)
+  `, [ids]);
+
+  const map = new Map<string, { slug: string; name: string }>();
+  for (const row of result.rows) {
+    map.set(row.id, { slug: row.slug, name: row.name });
+  }
+  return map;
 }
 
 /**
