@@ -164,8 +164,9 @@ async function processJob(job: IngestJob): Promise<void> {
     await updateJobStatus(job.id);
 
     console.log(`Completed processing job ${job.id}`);
-  } catch (error: any) {
-    console.error(`Error processing job ${job.id}:`, error);
+  } catch (err) {
+    console.error(`Error processing job ${job.id}:`, err);
+    const error = err instanceof Error ? err : new Error(String(err));
 
     // Mark job as failed
     await query(`
@@ -283,7 +284,8 @@ async function processItem(item: IngestItem, job: IngestJob): Promise<void> {
     }
 
     console.log(`Successfully processed item ${item.id}: ${result.action}`);
-  } catch (error: any) {
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error(`Error processing item ${item.id}:`, error.message);
 
     // Retry logic
@@ -486,7 +488,8 @@ async function processItemIntegration(item: IngestItem, job: IngestJob): Promise
 
     // Update job status
     await updateJobStatus(job.id);
-  } catch (error: any) {
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
     await query(`
       UPDATE ingest_items
       SET status = 'failed',

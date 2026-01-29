@@ -23,6 +23,7 @@ import {
   DEFAULT_COLLECTOR_CONFIG,
   generateErrorId,
   determineHealthStatus,
+  sanitizeError,
 } from './types.js';
 
 // Railway GraphQL API endpoint
@@ -443,8 +444,17 @@ export class RailwayCollector implements Collector {
                   });
                 }
               }
-            } catch {
-              // Log fetch failed, continue without logs
+            } catch (logErr) {
+              // Log fetch failed, add warning error and continue
+              errors.push({
+                id: generateErrorId(this.name),
+                timestamp: collectedAt,
+                severity: 'warning',
+                category: 'configuration',
+                message: `Failed to fetch deployment logs: ${sanitizeError(logErr instanceof Error ? logErr.message : String(logErr))}`,
+                source: `${this.name}:logs`,
+                details: { deploymentId: latestDeployment.id },
+              });
             }
           }
         }
@@ -554,7 +564,7 @@ export class RailwayCollector implements Collector {
       clearTimeout(timeoutId);
       return {
         errors: [{
-          message: err instanceof Error ? err.message : String(err),
+          message: sanitizeError(err instanceof Error ? err.message : String(err)),
         }],
       };
     }

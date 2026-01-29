@@ -16,13 +16,14 @@ interface MobileNavProps {
 
 // Default sections as fallback when API unavailable
 const DEFAULT_SECTIONS: SectionItem[] = [
+  { title: 'Claude Code', href: '/claude-code' },
+  { title: 'Orchestration', href: '/orchestration' },
   { title: 'Beads', href: '/beads' },
   { title: 'Gastown', href: '/gastown' },
   { title: 'Skills Bank', href: '/skills-bank' },
   { title: 'Prompt Bank', href: '/prompt-bank' },
   { title: 'Plugins', href: '/plugins' },
   { title: 'Tooling & MCP', href: '/tooling-mcp' },
-  { title: 'Orchestration', href: '/orchestration' },
 ]
 
 /**

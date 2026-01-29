@@ -5,6 +5,9 @@ import rateLimit from 'express-rate-limit';
 import { pagesRouter } from './routes/pages.js';
 import { adminRouter } from './routes/admin.js';
 import { ingestRouter } from './routes/ingest.js';
+import searchRouter from './routes/search.js';
+import categoriesRouter from './routes/categories.js';
+import graphRouter from './routes/graph.js';
 import { closePool, query } from './db/client.js';
 import { startProcessor, stopProcessor } from './services/processor.js';
 import { getAdminPasswordHash, comparePassword } from './utils/auth.js';
@@ -45,16 +48,16 @@ app.get('/health/db', async (_req: Request, res: Response) => {
     res.json({
       status: 'ok',
       database: 'connected',
-      result: result.rows[0],
-      dbUrl: process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':****@')
+      serverTime: result.rows[0]?.time
     });
-  } catch (err: any) {
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    const pgError = err as { code?: string };
     res.status(500).json({
       status: 'error',
       database: 'disconnected',
-      error: err.message,
-      code: err.code,
-      dbUrl: process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':****@')
+      error: error.message,
+      code: pgError.code
     });
   }
 });
@@ -97,8 +100,9 @@ app.post('/admin/migrate', async (req: Request, res: Response) => {
           results.push(`Skipped ${migrationName} (already applied)`);
           continue;
         }
-      } catch (err: any) {
-        if (err.code !== '42P01') throw err; // Table doesn't exist yet
+      } catch (err) {
+        const pgError = err as { code?: string };
+        if (pgError.code !== '42P01') throw err; // Table doesn't exist yet
       }
 
       const sql = readFileSync(join(migrationsDir, file), 'utf-8');
@@ -142,13 +146,17 @@ app.post('/admin/migrate', async (req: Request, res: Response) => {
     }
 
     res.json({ status: 'ok', migrations: results });
-  } catch (err: any) {
-    res.status(500).json({ error: 'migration_failed', message: err.message });
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    res.status(500).json({ error: 'migration_failed', message: error.message });
   }
 });
 
 // Public routes
 app.use('/pages', pagesRouter);
+app.use('/search', searchRouter);
+app.use('/categories', categoriesRouter);
+app.use('/graph', graphRouter);
 
 // Admin routes (with auth middleware)
 app.use('/admin', adminRouter);
@@ -165,6 +173,19 @@ app.use((_req: Request, res: Response) => {
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred' });
+});
+
+// Global error handlers for uncaught exceptions and rejections
+process.on('uncaughtException', (error: Error) => {
+  console.error('Uncaught Exception:', error);
+  // Give time for logging, then exit
+  setTimeout(() => process.exit(1), 1000);
+});
+
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Log but don't crash - let the process continue
+  // In production, you might want to exit here depending on severity
 });
 
 // Graceful shutdown

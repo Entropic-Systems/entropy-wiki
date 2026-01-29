@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import TurndownService from 'turndown';
 import { Octokit } from '@octokit/rest';
 import { ContentType, ExtractedContent } from '../types.js';
+import { secureFetch, URLValidationError } from './url-validator.js';
 
 // Initialize Turndown for HTML to Markdown conversion
 const turndown = new TurndownService({
@@ -98,11 +99,14 @@ function parseGitHubUrl(url: string): { owner: string; repo: string; type: strin
 export class ArticleExtractor implements ContentExtractor {
   async extract(url: string): Promise<ExtractedContent> {
     try {
-      const response = await fetch(url, {
+      // Use secure fetch with SSRF protection
+      const response = await secureFetch(url, {
         headers: {
           'User-Agent': 'EntropyWiki/1.0 (content extraction)',
           'Accept': 'text/html,application/xhtml+xml',
         },
+      }, {
+        timeoutMs: 15000, // 15 second timeout for content extraction
       });
 
       if (!response.ok) {
@@ -271,7 +275,44 @@ ${body}`;
       };
     }
 
-    const content = Buffer.from(file.content, 'base64').toString('utf-8');
+    // Security: Check file size before decoding to prevent memory exhaustion
+    const maxFileSize = 5 * 1024 * 1024; // 5MB limit
+    if (file.size && file.size > maxFileSize) {
+      return {
+        title: path.split('/').pop() || path,
+        summary: `File too large (${Math.round(file.size / 1024)}KB, max 5MB)`,
+        content: null,
+        topics: ['large-file'],
+        entities: { github: { owner, repo, path, type: 'file', error: 'file_too_large' } },
+        confidence: 0.1,
+      };
+    }
+
+    // Validate base64 content exists and is reasonable length
+    if (!file.content || typeof file.content !== 'string') {
+      throw new Error('No file content received from GitHub API');
+    }
+
+    // Additional safety: check base64 string length (rough size check)
+    const estimatedSize = (file.content.length * 3) / 4; // Base64 expansion factor
+    if (estimatedSize > maxFileSize) {
+      return {
+        title: path.split('/').pop() || path,
+        summary: `File content too large for extraction`,
+        content: null,
+        topics: ['large-file'],
+        entities: { github: { owner, repo, path, type: 'file', error: 'content_too_large' } },
+        confidence: 0.1,
+      };
+    }
+
+    let content: string;
+    try {
+      content = Buffer.from(file.content, 'base64').toString('utf-8');
+    } catch (error) {
+      throw new Error(`Failed to decode file content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
     const isMarkdown = path.endsWith('.md') || path.endsWith('.markdown');
 
     return {
@@ -297,7 +338,19 @@ ${body}`;
 
     if (readmeResponse) {
       const readme = readmeResponse.data as any;
-      readmeContent = Buffer.from(readme.content, 'base64').toString('utf-8');
+
+      // Security: Check README size before decoding
+      const maxReadmeSize = 1 * 1024 * 1024; // 1MB limit for README
+      if (readme.size && readme.size > maxReadmeSize) {
+        readmeContent = `[README too large for extraction: ${Math.round(readme.size / 1024)}KB]`;
+      } else if (readme.content && typeof readme.content === 'string') {
+        try {
+          readmeContent = Buffer.from(readme.content, 'base64').toString('utf-8');
+        } catch (error) {
+          readmeContent = '[README decode error]';
+          console.warn(`Failed to decode README for ${owner}/${repo}:`, error);
+        }
+      }
     }
 
     const topics = repoData.topics || [];
@@ -343,9 +396,9 @@ ${readmeContent}`;
 export class TwitterExtractor implements ContentExtractor {
   async extract(url: string): Promise<ExtractedContent> {
     try {
-      // Use Twitter oEmbed API
+      // Use Twitter oEmbed API with secure fetch
       const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true`;
-      const response = await fetch(oembedUrl);
+      const response = await secureFetch(oembedUrl, {}, { timeoutMs: 10000 });
 
       if (!response.ok) {
         throw new Error(`oEmbed API returned ${response.status}`);
